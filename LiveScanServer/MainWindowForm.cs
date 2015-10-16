@@ -358,6 +358,7 @@ namespace KinectServer
 
             //Update the calibration data in client machines.
             List<AffineTransform> worldTransforms = oServer.lWorldTransforms;
+            List<AffineTransform> cameraPoses = oServer.lCameraPoses;
 
             for (int i = 0; i < worldTransforms.Count; i++)
             {
@@ -371,6 +372,7 @@ namespace KinectServer
                     }
 
                     worldTransforms[i].t[j] += tempT[j];
+                    cameraPoses[i].t[j] += Ts[i][j];
                 }
 
                 for (int j = 0; j < 3; j++)
@@ -383,11 +385,13 @@ namespace KinectServer
                         }
 
                         worldTransforms[i].R[j, k] = tempR[j, k];
+                        cameraPoses[i].R[j, k] = tempR[j, k];
                     }
                 }                    
             }
 
             oServer.lWorldTransforms = worldTransforms;
+            oServer.lCameraPoses = cameraPoses;
 
             oServer.SendCalibrationData();
         }

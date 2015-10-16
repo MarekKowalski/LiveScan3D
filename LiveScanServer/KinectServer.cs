@@ -67,6 +67,16 @@ namespace KinectServer
                 }
                 return cameraPoses;
             }
+            set
+            {
+                lock (oClientSocketLock)
+                {
+                    for (int i = 0; i < lClientSockets.Count; i++)
+                    {
+                        lClientSockets[i].oCameraPose = value[i];
+                    }
+                }
+            }
         }
 
         public List<AffineTransform> lWorldTransforms
