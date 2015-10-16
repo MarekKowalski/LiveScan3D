@@ -281,6 +281,7 @@
             this.lisMarkers.Name = "lisMarkers";
             this.lisMarkers.Size = new System.Drawing.Size(120, 108);
             this.lisMarkers.TabIndex = 43;
+            this.lisMarkers.SelectedIndexChanged += new System.EventHandler(this.lisMarkers_SelectedIndexChanged);
             // 
             // txtTranslationY
             // 

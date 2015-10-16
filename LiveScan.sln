@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LiveScanClient", "LiveScanClient\KinectClient.vcxproj", "{9B550BBA-EAFB-4D12-8B1C-8FDA39361F52}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiveScanServer", "LiveScanServer\LiveScanServer.csproj", "{78422B2C-0EF1-4A28-A40E-2A7C4A9204B1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{973EE923-B423-4BCD-AA08-B03DA40CB51F} = {973EE923-B423-4BCD-AA08-B03DA40CB51F}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ICP", "ICP\ICP.vcxproj", "{973EE923-B423-4BCD-AA08-B03DA40CB51F}"
 EndProject
