@@ -35,4 +35,8 @@ private:
 	ICoordinateMapper* pCoordinateMapper;
 	IKinectSensor* pKinectSensor;
 	IMultiSourceFrameReader* pMultiSourceFrameReader;
+
+	void GetDepthFrame(IMultiSourceFrame* pMultiFrame);
+	void GetColorFrame(IMultiSourceFrame* pMultiFrame);
+	void GetBodyFrame(IMultiSourceFrame* pMultiFrame);
 };

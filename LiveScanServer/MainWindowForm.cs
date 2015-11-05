@@ -31,6 +31,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Timers;
 
+using System.Diagnostics;
+
 
 namespace KinectServer
 {
@@ -48,6 +50,8 @@ namespace KinectServer
         List<byte> lAllColors = new List<byte>();
         //Sensor poses from all of the sensors
         List<AffineTransform> lAllCameraPoses = new List<AffineTransform>();
+        //Body data from all of the sensors
+        List<Body> lAllBodies = new List<Body>();
 
         bool bServerRunning = false;
         bool bRecording = false;
@@ -161,6 +165,7 @@ namespace KinectServer
                 oOpenGLWindow.vertices = lAllVertices;
                 oOpenGLWindow.colors = lAllColors;
                 oOpenGLWindow.cameraPoses = lAllCameraPoses;
+                oOpenGLWindow.bodies = lAllBodies;
                 oOpenGLWindow.settings = oSettings;
             }
             oOpenGLWindow.Run();
@@ -245,26 +250,30 @@ namespace KinectServer
         {
             List<List<byte>> lFramesRGB = new List<List<byte>>();
             List<List<Single>> lFramesVerts = new List<List<Single>>();
+            List<List<Body>> lFramesBody = new List<List<Body>>();
 
             BackgroundWorker worker = (BackgroundWorker)sender;
             while (!worker.CancellationPending)
             {
                 Thread.Sleep(1);
-                oServer.GetLatestFrame(lFramesRGB, lFramesVerts);
+                oServer.GetLatestFrame(lFramesRGB, lFramesVerts, lFramesBody);
 
                 //Update the vertex and color lists that are common between this class and the OpenGLWindow.
                 lock (lAllVertices)
                 {
                     lAllVertices.Clear();
                     lAllColors.Clear();
+                    lAllBodies.Clear();
                     lAllCameraPoses.Clear();
 
                     for (int i = 0; i < lFramesRGB.Count; i++)
                     {
                         lAllVertices.AddRange(lFramesVerts[i]);
                         lAllColors.AddRange(lFramesRGB[i]);
-                        lAllCameraPoses.Add(oServer.lCameraPoses[i]);
+                        lAllBodies.AddRange(lFramesBody[i]);                       
                     }
+
+                    lAllCameraPoses.AddRange(oServer.lCameraPoses);
                 }
 
                 //Notes the fact that a new frame was downloaded, this is used to estimate the FPS.
@@ -285,7 +294,8 @@ namespace KinectServer
             //Download a frame from each client.
             List<List<float>> lAllFrameVertices = new List<List<float>>();
             List<List<byte>> lAllFrameColors = new List<List<byte>>();
-            oServer.GetLatestFrame(lAllFrameColors, lAllFrameVertices);
+            List<List<Body>> lAllFrameBody = new List<List<Body>>();
+            oServer.GetLatestFrame(lAllFrameColors, lAllFrameVertices, lAllFrameBody);
 
             //Initialize containers for the poses.
             List<float[]> Rs = new List<float[]>();

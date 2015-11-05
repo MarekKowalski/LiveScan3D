@@ -15,6 +15,14 @@
 #pragma once
 
 #include "utils.h"
+#include "Kinect.h"
+
+struct Body
+{
+	bool bTracked;
+	std::vector<Joint> vJoints;
+	std::vector<Point2f> vJointsInColorSpace;
+};
 
 class ICapture
 {
@@ -36,4 +44,5 @@ public:
 
 	UINT16 *pDepth;
 	RGB *pColorRGBX;
+	std::vector<Body> vBodies;
 };

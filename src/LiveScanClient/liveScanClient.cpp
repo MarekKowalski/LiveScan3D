@@ -46,6 +46,8 @@ LiveScanClient::LiveScanClient() :
     m_pDrawColor(NULL),
 	m_pDepthRGBX(NULL),
 	m_pCameraSpaceCoordinates(NULL),
+	m_pColorCoordinatesOfDepth(NULL),
+	m_pDepthCoordinatesOfColor(NULL),
 	m_bCalibrate(false),
 	m_bFilter(false),
 	m_bCaptureFrame(false),
@@ -101,10 +103,16 @@ LiveScanClient::~LiveScanClient()
 		m_pCameraSpaceCoordinates = NULL;
 	}
 
-	if (m_pColorCoordinates)
+	if (m_pColorCoordinatesOfDepth)
 	{
-		delete[] m_pColorCoordinates;
-		m_pColorCoordinates = NULL;
+		delete[] m_pColorCoordinatesOfDepth;
+		m_pColorCoordinatesOfDepth = NULL;
+	}
+
+	if (m_pDepthCoordinatesOfColor)
+	{
+		delete[] m_pDepthCoordinatesOfColor;
+		m_pDepthCoordinatesOfColor = NULL;
 	}
 
 	if (m_pClientSocket)
@@ -184,10 +192,10 @@ void LiveScanClient::UpdateFrame()
 		return;
 
 	pCapture->MapDepthFrameToCameraSpace(m_pCameraSpaceCoordinates);
-	pCapture->MapDepthFrameToColorSpace(m_pColorCoordinates);
+	pCapture->MapDepthFrameToColorSpace(m_pColorCoordinatesOfDepth);
 	{
 		std::lock_guard<std::mutex> lock(m_mSocketThreadMutex);
-		StoreFrame(m_pCameraSpaceCoordinates, m_pColorCoordinates, pCapture->pColorRGBX);
+		StoreFrame(m_pCameraSpaceCoordinates, m_pColorCoordinatesOfDepth, pCapture->pColorRGBX, pCapture->vBodies);
 
 		if (m_bCaptureFrame)
 		{
@@ -267,7 +275,8 @@ LRESULT CALLBACK LiveScanClient::DlgProc(HWND hWnd, UINT message, WPARAM wParam,
 				m_pDepthRGBX = new RGB[pCapture->nColorFrameWidth * pCapture->nColorFrameHeight];
 
 				m_pCameraSpaceCoordinates = new Point3f[pCapture->nDepthFrameWidth * pCapture->nDepthFrameHeight];
-				m_pColorCoordinates = new Point2f[pCapture->nDepthFrameWidth * pCapture->nDepthFrameHeight];
+				m_pColorCoordinatesOfDepth = new Point2f[pCapture->nDepthFrameWidth * pCapture->nDepthFrameHeight];
+				m_pDepthCoordinatesOfColor = new Point2f[pCapture->nColorFrameWidth * pCapture->nColorFrameHeight];
 			}
 			else
 			{
@@ -354,17 +363,16 @@ LRESULT CALLBACK LiveScanClient::DlgProc(HWND hWnd, UINT message, WPARAM wParam,
 void LiveScanClient::ProcessDepth(const UINT16* pBuffer, int nWidth, int nHeight)
 {
 	// Make sure we've received valid data
-	if (m_pDepthRGBX && pBuffer && (nWidth == pCapture->nDepthFrameWidth) && (nHeight == pCapture->nDepthFrameHeight))
+	if (m_pDepthRGBX && m_pDepthCoordinatesOfColor && pBuffer && (nWidth == pCapture->nDepthFrameWidth) && (nHeight == pCapture->nDepthFrameHeight))
 	{
 		// end pixel is start + width*height - 1
 		const UINT16* pBufferEnd = pBuffer + (nWidth * nHeight);
 
-		Point2f *pDepthSpacePoints = new Point2f[pCapture->nColorFrameWidth * pCapture->nColorFrameHeight];
-		pCapture->MapColorFrameToDepthSpace(pDepthSpacePoints);
+		pCapture->MapColorFrameToDepthSpace(m_pDepthCoordinatesOfColor);
 
 		for (int i = 0; i < pCapture->nColorFrameWidth * pCapture->nColorFrameHeight; i++)
 		{
-			Point2f depthPoint = pDepthSpacePoints[i];
+			Point2f depthPoint = m_pDepthCoordinatesOfColor[i];
 			BYTE intensity = 0;
 			
 			if (depthPoint.X >= 0 && depthPoint.Y >= 0)
@@ -380,9 +388,7 @@ void LiveScanClient::ProcessDepth(const UINT16* pBuffer, int nWidth, int nHeight
 		}
 
 		// Draw the data with Direct2D
-		m_pDrawColor->Draw(reinterpret_cast<BYTE*>(m_pDepthRGBX), pCapture->nColorFrameWidth * pCapture->nColorFrameHeight * sizeof(RGB));
-
-		delete[] pDepthSpacePoints;
+		m_pDrawColor->Draw(reinterpret_cast<BYTE*>(m_pDepthRGBX), pCapture->nColorFrameWidth * pCapture->nColorFrameHeight * sizeof(RGB), pCapture->vBodies);
 	}
 }
 
@@ -392,7 +398,7 @@ void LiveScanClient::ProcessColor(RGB* pBuffer, int nWidth, int nHeight)
 	if (pBuffer && (nWidth == pCapture->nColorFrameWidth) && (nHeight == pCapture->nColorFrameHeight))
     {
         // Draw the data with Direct2D
-		m_pDrawColor->Draw(reinterpret_cast<BYTE*>(pBuffer), pCapture->nColorFrameWidth * pCapture->nColorFrameHeight * sizeof(RGB));
+		m_pDrawColor->Draw(reinterpret_cast<BYTE*>(pBuffer), pCapture->nColorFrameWidth * pCapture->nColorFrameHeight * sizeof(RGB), pCapture->vBodies);
     }
 }
 
@@ -502,29 +508,7 @@ void LiveScanClient::HandleSocket()
 
 			if (m_vGatheredRGBPoints.size() > 0)
 			{
-				int size = m_vGatheredRGBPoints[0].size() * (3 + 3 * sizeof(float));
-				//m_pClientSocket->SendLine(to_string(size));
-				m_pClientSocket->SendBytes((char*)&size, 4);
-
-				char *to_send = new char[size];
-				char *ptr1 = (char*)m_vGatheredRGBPoints[0].data();
-				char *ptr2 = (char*)m_vGatheredVertices[0].data();
-				int pos = 0, initial_pos;
-				for (unsigned int i = 0; i < m_vGatheredRGBPoints[0].size(); i++)
-				{
-					initial_pos = pos;
-					to_send[pos++] = m_vGatheredRGBPoints[0][i].rgbRed;
-					to_send[pos++] = m_vGatheredRGBPoints[0][i].rgbGreen;
-					to_send[pos++] = m_vGatheredRGBPoints[0][i].rgbBlue;
-
-
-					memcpy(to_send + pos, ptr2, sizeof(float)* 3);
-					ptr2 += sizeof(float)* 3;
-					pos += sizeof(float)* 3;
-				}
-
-				m_pClientSocket->SendBytes(to_send, size);
-				delete[]to_send;
+				SendFrame(m_vGatheredVertices[0], m_vGatheredRGBPoints[0], m_vLastFrameBody);
 
 				m_vGatheredRGBPoints.erase(m_vGatheredRGBPoints.begin(), m_vGatheredRGBPoints.begin() + 1);
 				m_vGatheredVertices.erase(m_vGatheredVertices.begin(), m_vGatheredVertices.begin() + 1);
@@ -541,28 +525,7 @@ void LiveScanClient::HandleSocket()
 			byteToSend = MSG_LAST_FRAME;
 			m_pClientSocket->SendBytes(&byteToSend, 1);
 
-			int size = m_vLastFrameRGB.size() * (3 + 3 * sizeof(float));
-			//m_pClientSocket->SendLine(to_string(size));
-			m_pClientSocket->SendBytes((char*)&size, 4);
-
-			char *buffer = new char[size];
-			char *ptr2 = (char*)m_vLastFrameVertices.data();
-			int pos = 0, initial_pos;
-			for (unsigned int i = 0; i < m_vLastFrameRGB.size(); i++)
-			{
-				initial_pos = pos;
-				buffer[pos++] = m_vLastFrameRGB[i].rgbRed;
-				buffer[pos++] = m_vLastFrameRGB[i].rgbGreen;
-				buffer[pos++] = m_vLastFrameRGB[i].rgbBlue;
-
-
-				memcpy(buffer + pos, ptr2, sizeof(float)* 3);
-				ptr2 += sizeof(float)* 3;
-				pos += sizeof(float)* 3;
-			}
-
-			m_pClientSocket->SendBytes(buffer, size);
-			delete[]buffer;
+			SendFrame(m_vLastFrameVertices, m_vLastFrameRGB, m_vLastFrameBody);
 		}
 		//receive calibration data
 		else if (received[i] == MSG_RECEIVE_CALIBRATION)
@@ -644,7 +607,83 @@ void LiveScanClient::HandleSocket()
 	}
 }
 
-void LiveScanClient::StoreFrame(Point3f *vertices, Point2f *mapping, RGB *color)
+void LiveScanClient::SendFrame(vector<Point3f> vertices, vector<RGB> RGB, vector<Body> body)
+{
+	int size = RGB.size() * (3 + 3 * sizeof(float)) + sizeof(int);
+
+	vector<char> buffer(size);
+	char *ptr2 = (char*)vertices.data();
+	int pos = 0;
+
+	int nVertices = RGB.size();
+	memcpy(buffer.data() + pos, &nVertices, sizeof(nVertices));
+	pos += sizeof(nVertices);
+
+	for (unsigned int i = 0; i < RGB.size(); i++)
+	{
+		buffer[pos++] = RGB[i].rgbRed;
+		buffer[pos++] = RGB[i].rgbGreen;
+		buffer[pos++] = RGB[i].rgbBlue;
+
+
+		memcpy(buffer.data() + pos, ptr2, sizeof(float)* 3);
+		ptr2 += sizeof(float)* 3;
+		pos += sizeof(float)* 3;
+	}
+
+	int nBodies = body.size();
+	size += sizeof(nBodies);
+	for (int i = 0; i < nBodies; i++)
+	{
+		size += sizeof(body[i].bTracked);
+		int nJoints = body[i].vJoints.size();
+		size += sizeof(nJoints);
+		size += nJoints * (3 * sizeof(float) + 2 * sizeof(int));
+		size += nJoints * 2 * sizeof(float);
+	}
+	buffer.resize(size);
+	
+	memcpy(buffer.data() + pos, &nBodies, sizeof(nBodies));
+	pos += sizeof(nBodies);
+
+	for (int i = 0; i < nBodies; i++)
+	{
+		memcpy(buffer.data() + pos, &body[i].bTracked, sizeof(body[i].bTracked));
+		pos += sizeof(body[i].bTracked);
+
+		int nJoints = body[i].vJoints.size();
+		memcpy(buffer.data() + pos, &nJoints, sizeof(nJoints));
+		pos += sizeof(nJoints);
+
+		for (int j = 0; j < nJoints; j++)
+		{
+			//Joint
+			memcpy(buffer.data() + pos, &body[i].vJoints[j].JointType, sizeof(JointType));
+			pos += sizeof(JointType);
+			memcpy(buffer.data() + pos, &body[i].vJoints[j].TrackingState, sizeof(TrackingState));
+			pos += sizeof(TrackingState);
+			//Joint position
+			memcpy(buffer.data() + pos, &body[i].vJoints[j].Position.X, sizeof(float));
+			pos += sizeof(float);
+			memcpy(buffer.data() + pos, &body[i].vJoints[j].Position.Y, sizeof(float));
+			pos += sizeof(float);
+			memcpy(buffer.data() + pos, &body[i].vJoints[j].Position.Z, sizeof(float));
+			pos += sizeof(float);
+
+			//JointInColorSpace
+			memcpy(buffer.data() + pos, &body[i].vJointsInColorSpace[j].X, sizeof(float));
+			pos += sizeof(float);
+			memcpy(buffer.data() + pos, &body[i].vJointsInColorSpace[j].Y, sizeof(float));
+			pos += sizeof(float);
+		}
+	}
+
+	m_pClientSocket->SendBytes((char*)&size, sizeof(int));
+	m_pClientSocket->SendBytes(buffer.data(), size);
+
+}
+
+void LiveScanClient::StoreFrame(Point3f *vertices, Point2f *mapping, RGB *color, vector<Body> &bodies)
 {
 	std::vector<Point3f> goodVertices;
 	std::vector<RGB> goodColorPoints;
@@ -675,8 +714,31 @@ void LiveScanClient::StoreFrame(Point3f *vertices, Point2f *mapping, RGB *color)
 		}
 	}
 
+	for (unsigned int i = 0; i < bodies.size(); i++)
+	{
+		for (unsigned int j = 0; j < bodies[i].vJoints.size(); j++)
+		{
+			if (calibration.bCalibrated)
+			{
+				bodies[i].vJoints[j].Position.X += calibration.worldT[0];
+				bodies[i].vJoints[j].Position.Y += calibration.worldT[1];
+				bodies[i].vJoints[j].Position.Z += calibration.worldT[2];
+
+				Point3f tempPoint(bodies[i].vJoints[j].Position.X, bodies[i].vJoints[j].Position.Y, bodies[i].vJoints[j].Position.Z);
+
+				tempPoint = RotatePoint(tempPoint, calibration.worldR);
+
+				bodies[i].vJoints[j].Position.X = tempPoint.X;
+				bodies[i].vJoints[j].Position.Y = tempPoint.Y;
+				bodies[i].vJoints[j].Position.Z = tempPoint.Z;
+			}
+		}
+	}
+
 	if (m_bFilter)
 		filter(goodVertices, goodColorPoints, m_nFilterNeighbors, m_fFilterThreshold);
+
+	m_vLastFrameBody = bodies;
 	m_vLastFrameVertices = goodVertices;
 	m_vLastFrameRGB = goodColorPoints;
 }

@@ -277,10 +277,11 @@ namespace KinectServer
             }
         }
 
-        public void GetLatestFrame(List<List<byte>> lFramesRGB, List<List<Single>> lFramesVerts)
+        public void GetLatestFrame(List<List<byte>> lFramesRGB, List<List<Single>> lFramesVerts, List<List<Body>> lFramesBody)
         {
             lFramesRGB.Clear();
             lFramesVerts.Clear();
+            lFramesBody.Clear();
 
             lock (oFrameRequestLock)
             {
@@ -317,6 +318,7 @@ namespace KinectServer
                     {
                         lFramesRGB.Add(new List<byte>(lClientSockets[i].lFrameRGB));
                         lFramesVerts.Add(new List<Single>(lClientSockets[i].lFrameVerts));
+                        lFramesBody.Add(new List<Body>(lClientSockets[i].lBodies));
                     }
                 }
             }

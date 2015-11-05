@@ -9,6 +9,7 @@
 #pragma once
 
 #include <d2d1.h>
+#include "iCapture.h"
 
 class ImageRenderer
 {
@@ -41,7 +42,7 @@ public:
     /// <param name="pImage">image data in RGBX format</param>
     /// <param name="cbImage">size of image data in bytes</param>
     /// <returns>indicates success or failure</returns>
-    HRESULT Draw(BYTE* pImage, unsigned long cbImage);
+    HRESULT Draw(BYTE* pImage, unsigned long cbImage, std::vector<Body> &bodies);
 
 private:
     HWND                     m_hWnd;
@@ -66,4 +67,15 @@ private:
     /// Dispose of Direct2d resources 
     /// </summary>
     void DiscardResources();
+
+	void DrawBody(Body &body);
+	void DrawBone(Body &body, JointType joint0, JointType joint1);
+
+	ID2D1SolidColorBrush*   m_pBrushJointTracked;
+	ID2D1SolidColorBrush*   m_pBrushJointInferred;
+	ID2D1SolidColorBrush*   m_pBrushBoneTracked;
+	ID2D1SolidColorBrush*   m_pBrushBoneInferred;
+	ID2D1SolidColorBrush*   m_pBrushHandClosed;
+	ID2D1SolidColorBrush*   m_pBrushHandOpen;
+	ID2D1SolidColorBrush*   m_pBrushHandLasso;
 };

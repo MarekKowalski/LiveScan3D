@@ -57,6 +57,7 @@ private:
 
 	std::vector<Point3f> m_vLastFrameVertices;
 	std::vector<RGB> m_vLastFrameRGB;
+	std::vector<Body> m_vLastFrameBody;
 	std::vector<std::vector<Point3f>> m_vGatheredVertices;
 	std::vector<std::vector<RGB>> m_vGatheredRGBPoints;
 
@@ -67,7 +68,8 @@ private:
     DWORD m_nFramesSinceUpdate;	
 
 	Point3f* m_pCameraSpaceCoordinates;
-	Point2f* m_pColorCoordinates;
+	Point2f* m_pColorCoordinatesOfDepth;
+	Point2f* m_pDepthCoordinatesOfColor;
 
     // Direct2D
     ImageRenderer* m_pDrawColor;
@@ -81,8 +83,10 @@ private:
     bool SetStatusMessage(_In_z_ WCHAR* szMessage, DWORD nShowTimeMsec, bool bForce);
 
 	void HandleSocket();
+	void SendFrame(vector<Point3f> vertices, vector<RGB> RGB, vector<Body> body);
+
 	void SocketThreadFunction();
-	void StoreFrame(Point3f *vertices, Point2f *mapping, RGB *color);
+	void StoreFrame(Point3f *vertices, Point2f *mapping, RGB *color, vector<Body> &bodies);
 	void ShowFPS();
 	void ReadIPFromFile();
 	void WriteIPToFile();
