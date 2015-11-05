@@ -29,6 +29,11 @@ While all of our code is licensed under the MIT license, the 3rd party libraries
   * OpenCV - https://github.com/Itseez/opencv, 3-clause BSD license
   * OpenTK - https://github.com/opentk/opentk, MIT/X11 license
   * SocketCS - http://www.adp-gmbh.ch/win/misc/sockets.html
+ 
+If you use this software in your research, then please use the following citation:
+
+Kowalski, M.; Naruniec, J.; Daniluk, M.: "LiveScan3D: A Fast and Inexpensive 3D Data
+Acquisition System for Multiple Kinect v2 Sensors". in 3D Vision (3DV), 2015 International Conference on, Lyon, France, 2015
 
 ## Authors ##
   * Marek Kowalski <m.kowalski@ire.pw.edu.pl>, homepage: http://home.elka.pw.edu.pl/~mkowals6/
