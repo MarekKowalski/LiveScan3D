@@ -519,7 +519,7 @@ void LiveScanClient::HandleSocket()
 			}
 			else
 			{
-				int size = 0;
+				int size = -1;
 				m_pClientSocket->SendBytes((char*)&size, 4);
 			}
 		}

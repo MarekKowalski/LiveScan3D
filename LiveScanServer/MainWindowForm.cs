@@ -191,7 +191,11 @@ namespace KinectServer
                 List<List<byte>> lFrameRGBAllDevices = new List<List<byte>>();
                 List<List<float>> lFrameVertsAllDevices = new List<List<float>>();
 
-                oServer.GetStoredFrame(lFrameRGBAllDevices, lFrameVertsAllDevices);
+                bool success = oServer.GetStoredFrame(lFrameRGBAllDevices, lFrameVertsAllDevices);
+
+                //This indicates that there are no more stored frames.
+                if (!success)
+                    break;
 
                 nFrames++;
                 int nVerticesTotal = 0;
@@ -199,10 +203,6 @@ namespace KinectServer
                 {
                     nVerticesTotal += lFrameVertsAllDevices[i].Count;
                 }
-
-                //This indicates that there are no more stored frames.
-                if (nVerticesTotal == 0)
-                    break;
 
                 List<byte> lFrameRGB = new List<byte>();
                 List<Single> lFrameVerts = new List<Single>();

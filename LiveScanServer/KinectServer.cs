@@ -232,11 +232,12 @@ namespace KinectServer
             }
         }
 
-        public void GetStoredFrame(List<List<byte>> lFramesRGB, List<List<Single>> lFramesVerts)
+        public bool GetStoredFrame(List<List<byte>> lFramesRGB, List<List<Single>> lFramesVerts)
         {
+            bool bNoMoreStoredFrames;
             lFramesRGB.Clear();
             lFramesVerts.Clear();
-
+            
             lock (oFrameRequestLock)
             {
                 //Request frames
@@ -248,10 +249,10 @@ namespace KinectServer
 
                 //Wait till frames received
                 bool allGathered = false;
+                bNoMoreStoredFrames = false;
                 while (!allGathered)
                 {
-                    allGathered = true;
-
+                    allGathered = true;                
                     lock (oClientSocketLock)
                     {
                         for (int i = 0; i < lClientSockets.Count; i++)
@@ -261,6 +262,9 @@ namespace KinectServer
                                 allGathered = false;
                                 break;
                             }
+
+                            if (lClientSockets[i].bNoMoreStoredFrames)
+                                bNoMoreStoredFrames = true;
                         }
                     }
                 }
@@ -275,6 +279,11 @@ namespace KinectServer
                     }
                 }
             }
+
+            if (bNoMoreStoredFrames)
+                return false;
+            else
+                return true;
         }
 
         public void GetLatestFrame(List<List<byte>> lFramesRGB, List<List<Single>> lFramesVerts, List<List<Body>> lFramesBody)

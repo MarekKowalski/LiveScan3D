@@ -31,6 +31,7 @@ namespace KinectServer
         public bool bFrameCaptured = false;
         public bool bLatestFrameReceived = false;
         public bool bStoredFrameReceived = false;
+        public bool bNoMoreStoredFrames = true;
         public bool bCalibrated = false;
         //The pose of the sensor in the scene (used by the OpenGLWindow to show the sensor)
         public AffineTransform oCameraPose = new AffineTransform();
@@ -85,6 +86,7 @@ namespace KinectServer
         {
             byteToSend[0] = 3;
             SendByte();
+            bNoMoreStoredFrames = false;
             bStoredFrameReceived = false;
         }
 
@@ -170,8 +172,11 @@ namespace KinectServer
 
             nToRead = BitConverter.ToInt32(buffer, 0);
 
-            if (nToRead == 0)
+            if (nToRead == -1)
+            {
+                bNoMoreStoredFrames = true;
                 return;
+            }
             
             buffer = new byte[nToRead];
             int nAlreadyRead = 0;
