@@ -316,16 +316,9 @@ namespace KinectServer
 
             //Use ICP to refine the sensor poses.
             //This part is explained in more detail in our article (name on top of this file).
-            float error = 1;
-            float oldError = 1;
-            bool firstPass = true;
-            int iter = 0;
-            while (true)
-            {
-                if (iter > oSettings.nMaxNumRefineIters)
-                    break;
 
-                error = 0;
+            for (int refineIter = 0; refineIter < oSettings.nNumRefineIters; refineIter++)
+            {
                 for (int i = 0; i < lAllFrameVertices.Count; i++)
                 {
                     List<float> otherFramesVertices = new List<float>();
@@ -345,25 +338,12 @@ namespace KinectServer
                     Marshal.Copy(verts1, 0, pVerts1, verts1.Length);
                     Marshal.Copy(verts2, 0, pVerts2, verts2.Length);
 
-                    error += ICP(pVerts1, pVerts2, otherFramesVertices.Count / 3, lAllFrameVertices[i].Count / 3, Rs[i], Ts[i], oSettings.nNumICPIterations);
+                    ICP(pVerts1, pVerts2, otherFramesVertices.Count / 3, lAllFrameVertices[i].Count / 3, Rs[i], Ts[i], oSettings.nNumICPIterations);
 
                     Marshal.Copy(pVerts2, verts2, 0, verts2.Length);
                     lAllFrameVertices[i].Clear();
-                    lAllFrameVertices[i].AddRange(verts2);                    
+                    lAllFrameVertices[i].AddRange(verts2);
                 }
-
-                if (firstPass)
-                {
-                    firstPass = false;
-                }
-                else
-                {
-                    if (Math.Abs(oldError - error) / error < 0.01)
-                        break;
-                }
-                oldError = error;
-
-                iter++;
             }
 
             //Update the calibration data in client machines.

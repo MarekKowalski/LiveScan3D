@@ -97,6 +97,7 @@ bool KinectCapture::AcquireFrame()
 	GetDepthFrame(pMultiFrame);
 	GetColorFrame(pMultiFrame);
 	GetBodyFrame(pMultiFrame);
+	GetBodyIndexFrame(pMultiFrame);
 
 
 	return true;
@@ -217,4 +218,27 @@ void KinectCapture::GetBodyFrame(IMultiSourceFrame* pMultiFrame)
 
 	SafeRelease(pBodyFrame);
 	SafeRelease(pBodyFrameReference);
+}
+
+void KinectCapture::GetBodyIndexFrame(IMultiSourceFrame* pMultiFrame)
+{
+	IBodyIndexFrameReference* pBodyIndexFrameReference = NULL;
+	IBodyIndexFrame* pBodyIndexFrame = NULL;
+	pMultiFrame->get_BodyIndexFrameReference(&pBodyIndexFrameReference);
+	HRESULT hr = pBodyIndexFrameReference->AcquireFrame(&pBodyIndexFrame);
+
+
+	if (SUCCEEDED(hr))
+	{
+		if (pBodyIndex == NULL)
+		{
+			pBodyIndex = new BYTE[nDepthFrameHeight * nDepthFrameWidth];
+		}
+
+		UINT nBufferSize = nDepthFrameHeight * nDepthFrameWidth;
+		hr = pBodyIndexFrame->CopyFrameDataToArray(nBufferSize, pBodyIndex);
+	}
+
+	SafeRelease(pBodyIndexFrame);
+	SafeRelease(pBodyIndexFrameReference);
 }

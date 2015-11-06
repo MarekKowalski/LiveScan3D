@@ -39,4 +39,5 @@ private:
 	void GetDepthFrame(IMultiSourceFrame* pMultiFrame);
 	void GetColorFrame(IMultiSourceFrame* pMultiFrame);
 	void GetBodyFrame(IMultiSourceFrame* pMultiFrame);
+	void GetBodyIndexFrame(IMultiSourceFrame* pMultiFrame);
 };

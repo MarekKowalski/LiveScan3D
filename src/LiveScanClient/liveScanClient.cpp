@@ -50,6 +50,7 @@ LiveScanClient::LiveScanClient() :
 	m_pDepthCoordinatesOfColor(NULL),
 	m_bCalibrate(false),
 	m_bFilter(false),
+	m_bStreamOnlyBodies(false),
 	m_bCaptureFrame(false),
 	m_bConnected(false),
 	m_bConfirmCaptured(false),
@@ -195,7 +196,7 @@ void LiveScanClient::UpdateFrame()
 	pCapture->MapDepthFrameToColorSpace(m_pColorCoordinatesOfDepth);
 	{
 		std::lock_guard<std::mutex> lock(m_mSocketThreadMutex);
-		StoreFrame(m_pCameraSpaceCoordinates, m_pColorCoordinatesOfDepth, pCapture->pColorRGBX, pCapture->vBodies);
+		StoreFrame(m_pCameraSpaceCoordinates, m_pColorCoordinatesOfDepth, pCapture->pColorRGBX, pCapture->vBodies, pCapture->pBodyIndex);
 
 		if (m_bCaptureFrame)
 		{
@@ -497,6 +498,9 @@ void LiveScanClient::HandleSocket()
 				i += sizeof(int);
 			}
 
+			m_bStreamOnlyBodies = (received[i] != 0);
+			i++;
+
 			//so that we do not lose the next character in the stream
 			i--;
 		}
@@ -683,7 +687,7 @@ void LiveScanClient::SendFrame(vector<Point3f> vertices, vector<RGB> RGB, vector
 
 }
 
-void LiveScanClient::StoreFrame(Point3f *vertices, Point2f *mapping, RGB *color, vector<Body> &bodies)
+void LiveScanClient::StoreFrame(Point3f *vertices, Point2f *mapping, RGB *color, vector<Body> &bodies, BYTE* bodyIndex)
 {
 	std::vector<Point3f> goodVertices;
 	std::vector<RGB> goodColorPoints;
@@ -692,6 +696,9 @@ void LiveScanClient::StoreFrame(Point3f *vertices, Point2f *mapping, RGB *color,
 
 	for (unsigned int vertexIndex = 0; vertexIndex < nVertices; vertexIndex++)
 	{
+		if (m_bStreamOnlyBodies && bodyIndex[vertexIndex] >= bodies.size())
+			continue;
+
 		if (vertices[vertexIndex].Z >= 0 && mapping[vertexIndex].Y >= 0 && mapping[vertexIndex].Y < pCapture->nColorFrameHeight)
 		{
 			Point3f temp = vertices[vertexIndex];

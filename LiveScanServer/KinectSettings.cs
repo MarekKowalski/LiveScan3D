@@ -33,8 +33,10 @@ namespace KinectServer
 
         public BindingList<MarkerPose> lMarkerPoses = new BindingList<MarkerPose>();
 
+        public bool bStreamOnlyBodies = false;
+
         public int nNumICPIterations = 10;
-        public int nMaxNumRefineIters = 10;
+        public int nNumRefineIters = 2;
         public bool bMergeScansForSave = false;
 
         public KinectSettings()
@@ -86,6 +88,11 @@ namespace KinectServer
                 bTemp = BitConverter.GetBytes(lMarkerPoses[i].id);
                 lData.AddRange(bTemp);
             }
+
+            if (bStreamOnlyBodies)
+                lData.Add(1);
+            else
+                lData.Add(0);
 
             return lData;
         }

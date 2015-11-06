@@ -50,11 +50,12 @@ namespace KinectServer
             txtFilterDistance.Text = oSettings.fFilterThreshold.ToString(CultureInfo.InvariantCulture);
 
             lisMarkers.DataSource = oSettings.lMarkerPoses;
-            
+
+            chBodyData.Checked = oSettings.bStreamOnlyBodies;            
 
             chMerge.Checked = oSettings.bMergeScansForSave;
             txtICPIters.Text = oSettings.nNumICPIterations.ToString();
-            txtRefinIters.Text = oSettings.nMaxNumRefineIters.ToString();
+            txtRefinIters.Text = oSettings.nNumRefineIters.ToString();
         }
 
         void UpdateClients()
@@ -156,7 +157,7 @@ namespace KinectServer
 
         private void txtRefinIters_TextChanged(object sender, EventArgs e)
         {
-            Int32.TryParse(txtRefinIters.Text, out oSettings.nMaxNumRefineIters);
+            Int32.TryParse(txtRefinIters.Text, out oSettings.nNumRefineIters);
         }
 
         private void chMerge_CheckedChanged(object sender, EventArgs e)
@@ -280,6 +281,12 @@ namespace KinectServer
                 pose.id = id;
                 UpdateClients();
             }
+        }
+
+        private void chBodyData_CheckedChanged(object sender, EventArgs e)
+        {
+            oSettings.bStreamOnlyBodies = chBodyData.Checked;
+            UpdateClients();
         }
     }
 }

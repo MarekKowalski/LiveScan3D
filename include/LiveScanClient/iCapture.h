@@ -43,6 +43,7 @@ public:
 	int nDepthFrameHeight, nDepthFrameWidth;
 
 	UINT16 *pDepth;
+	BYTE *pBodyIndex;
 	RGB *pColorRGBX;
 	std::vector<Body> vBodies;
 };

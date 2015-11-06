@@ -40,6 +40,7 @@ private:
 
 	bool m_bCalibrate;
 	bool m_bFilter;
+	bool m_bStreamOnlyBodies;
 
 	ICapture *pCapture;
 
@@ -86,7 +87,7 @@ private:
 	void SendFrame(vector<Point3f> vertices, vector<RGB> RGB, vector<Body> body);
 
 	void SocketThreadFunction();
-	void StoreFrame(Point3f *vertices, Point2f *mapping, RGB *color, vector<Body> &bodies);
+	void StoreFrame(Point3f *vertices, Point2f *mapping, RGB *color, vector<Body> &bodies, BYTE* bodyIndex);
 	void ShowFPS();
 	void ReadIPFromFile();
 	void WriteIPToFile();
