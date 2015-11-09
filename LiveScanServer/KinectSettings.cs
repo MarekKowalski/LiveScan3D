@@ -38,6 +38,7 @@ namespace KinectServer
         public int nNumICPIterations = 10;
         public int nNumRefineIters = 2;
         public bool bMergeScansForSave = false;
+        public bool bSaveAsBinaryPLY = true;
 
         public KinectSettings()
         {

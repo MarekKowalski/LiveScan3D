@@ -33,6 +33,9 @@
             this.lbICPIters = new System.Windows.Forms.Label();
             this.txtICPIters = new System.Windows.Forms.TextBox();
             this.grClient = new System.Windows.Forms.GroupBox();
+            this.grBody = new System.Windows.Forms.GroupBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.chBodyData = new System.Windows.Forms.CheckBox();
             this.grMarkers = new System.Windows.Forms.GroupBox();
             this.lbX2 = new System.Windows.Forms.Label();
             this.btRemove = new System.Windows.Forms.Button();
@@ -69,17 +72,17 @@
             this.lbFilterDistance = new System.Windows.Forms.Label();
             this.txtFilterDistance = new System.Windows.Forms.TextBox();
             this.grServer = new System.Windows.Forms.GroupBox();
+            this.rBinaryPly = new System.Windows.Forms.RadioButton();
+            this.lbFormat = new System.Windows.Forms.Label();
+            this.rAsciiPly = new System.Windows.Forms.RadioButton();
             this.txtRefinIters = new System.Windows.Forms.TextBox();
             this.lbOuterIters = new System.Windows.Forms.Label();
-            this.grBody = new System.Windows.Forms.GroupBox();
-            this.chBodyData = new System.Windows.Forms.CheckBox();
-            this.label1 = new System.Windows.Forms.Label();
             this.grClient.SuspendLayout();
+            this.grBody.SuspendLayout();
             this.grMarkers.SuspendLayout();
             this.grBounding.SuspendLayout();
             this.grFiltering.SuspendLayout();
             this.grServer.SuspendLayout();
-            this.grBody.SuspendLayout();
             this.SuspendLayout();
             // 
             // lbMerge
@@ -131,6 +134,37 @@
             this.grClient.TabIndex = 43;
             this.grClient.TabStop = false;
             this.grClient.Text = "KinectClient settings";
+            // 
+            // grBody
+            // 
+            this.grBody.Controls.Add(this.label1);
+            this.grBody.Controls.Add(this.chBodyData);
+            this.grBody.Location = new System.Drawing.Point(9, 211);
+            this.grBody.Name = "grBody";
+            this.grBody.Size = new System.Drawing.Size(249, 110);
+            this.grBody.TabIndex = 47;
+            this.grBody.TabStop = false;
+            this.grBody.Text = "Body data";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(11, 43);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(187, 13);
+            this.label1.TabIndex = 20;
+            this.label1.Text = "More features will be added here soon";
+            // 
+            // chBodyData
+            // 
+            this.chBodyData.AutoSize = true;
+            this.chBodyData.Location = new System.Drawing.Point(11, 19);
+            this.chBodyData.Name = "chBodyData";
+            this.chBodyData.Size = new System.Drawing.Size(113, 17);
+            this.chBodyData.TabIndex = 19;
+            this.chBodyData.Text = "stream only bodies";
+            this.chBodyData.UseVisualStyleBackColor = true;
+            this.chBodyData.CheckedChanged += new System.EventHandler(this.chBodyData_CheckedChanged);
             // 
             // grMarkers
             // 
@@ -470,6 +504,9 @@
             // 
             // grServer
             // 
+            this.grServer.Controls.Add(this.rBinaryPly);
+            this.grServer.Controls.Add(this.lbFormat);
+            this.grServer.Controls.Add(this.rAsciiPly);
             this.grServer.Controls.Add(this.txtRefinIters);
             this.grServer.Controls.Add(this.lbOuterIters);
             this.grServer.Controls.Add(this.lbMerge);
@@ -478,10 +515,43 @@
             this.grServer.Controls.Add(this.lbICPIters);
             this.grServer.Location = new System.Drawing.Point(12, 345);
             this.grServer.Name = "grServer";
-            this.grServer.Size = new System.Drawing.Size(632, 78);
+            this.grServer.Size = new System.Drawing.Size(632, 111);
             this.grServer.TabIndex = 44;
             this.grServer.TabStop = false;
             this.grServer.Text = "KinectServer settings";
+            // 
+            // rBinaryPly
+            // 
+            this.rBinaryPly.AutoSize = true;
+            this.rBinaryPly.Location = new System.Drawing.Point(179, 71);
+            this.rBinaryPly.Name = "rBinaryPly";
+            this.rBinaryPly.Size = new System.Drawing.Size(76, 17);
+            this.rBinaryPly.TabIndex = 30;
+            this.rBinaryPly.TabStop = true;
+            this.rBinaryPly.Text = "binary PLY";
+            this.rBinaryPly.UseVisualStyleBackColor = true;
+            this.rBinaryPly.CheckedChanged += new System.EventHandler(this.PlyFormat_CheckedChanged);
+            // 
+            // lbFormat
+            // 
+            this.lbFormat.AutoSize = true;
+            this.lbFormat.Location = new System.Drawing.Point(6, 73);
+            this.lbFormat.Name = "lbFormat";
+            this.lbFormat.Size = new System.Drawing.Size(58, 13);
+            this.lbFormat.TabIndex = 29;
+            this.lbFormat.Text = "File format:";
+            // 
+            // rAsciiPly
+            // 
+            this.rAsciiPly.AutoSize = true;
+            this.rAsciiPly.Location = new System.Drawing.Point(98, 71);
+            this.rAsciiPly.Name = "rAsciiPly";
+            this.rAsciiPly.Size = new System.Drawing.Size(75, 17);
+            this.rAsciiPly.TabIndex = 28;
+            this.rAsciiPly.TabStop = true;
+            this.rAsciiPly.Text = "ASCII PLY";
+            this.rAsciiPly.UseVisualStyleBackColor = true;
+            this.rAsciiPly.CheckedChanged += new System.EventHandler(this.PlyFormat_CheckedChanged);
             // 
             // txtRefinIters
             // 
@@ -500,42 +570,11 @@
             this.lbOuterIters.TabIndex = 26;
             this.lbOuterIters.Text = "Num of refinement iters:";
             // 
-            // grBody
-            // 
-            this.grBody.Controls.Add(this.label1);
-            this.grBody.Controls.Add(this.chBodyData);
-            this.grBody.Location = new System.Drawing.Point(9, 211);
-            this.grBody.Name = "grBody";
-            this.grBody.Size = new System.Drawing.Size(249, 110);
-            this.grBody.TabIndex = 47;
-            this.grBody.TabStop = false;
-            this.grBody.Text = "Body data";
-            // 
-            // chBodyData
-            // 
-            this.chBodyData.AutoSize = true;
-            this.chBodyData.Location = new System.Drawing.Point(11, 19);
-            this.chBodyData.Name = "chBodyData";
-            this.chBodyData.Size = new System.Drawing.Size(113, 17);
-            this.chBodyData.TabIndex = 19;
-            this.chBodyData.Text = "stream only bodies";
-            this.chBodyData.UseVisualStyleBackColor = true;
-            this.chBodyData.CheckedChanged += new System.EventHandler(this.chBodyData_CheckedChanged);
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(11, 43);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(187, 13);
-            this.label1.TabIndex = 20;
-            this.label1.Text = "More features will be added here soon";
-            // 
             // SettingsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(656, 435);
+            this.ClientSize = new System.Drawing.Size(656, 468);
             this.Controls.Add(this.grServer);
             this.Controls.Add(this.grClient);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -544,6 +583,8 @@
             this.Text = "Settings";
             this.Load += new System.EventHandler(this.SettingsForm_Load);
             this.grClient.ResumeLayout(false);
+            this.grBody.ResumeLayout(false);
+            this.grBody.PerformLayout();
             this.grMarkers.ResumeLayout(false);
             this.grMarkers.PerformLayout();
             this.grBounding.ResumeLayout(false);
@@ -552,8 +593,6 @@
             this.grFiltering.PerformLayout();
             this.grServer.ResumeLayout(false);
             this.grServer.PerformLayout();
-            this.grBody.ResumeLayout(false);
-            this.grBody.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -606,6 +645,9 @@
         private System.Windows.Forms.GroupBox grBody;
         private System.Windows.Forms.CheckBox chBodyData;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.RadioButton rBinaryPly;
+        private System.Windows.Forms.Label lbFormat;
+        private System.Windows.Forms.RadioButton rAsciiPly;
 
     }
 }

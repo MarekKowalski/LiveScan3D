@@ -57,6 +57,32 @@ typedef struct Point3f
 	float Z;
 } Point3f;
 
+typedef struct Point3s
+{
+	Point3s()
+	{
+		this->X = 0;
+		this->Y = 0;
+		this->Z = 0;
+	}
+	Point3s(short X, short Y, short Z)
+	{
+		this->X = X;
+		this->Y = Y;
+		this->Z = Z;
+	}
+	//meters to milimeters
+	Point3s(Point3f &other)
+	{
+		this->X = static_cast<short>(1000 * other.X);
+		this->Y = static_cast<short>(1000 * other.Y);
+		this->Z = static_cast<short>(1000 * other.Z);
+	}
+	short X;
+	short Y;
+	short Z;
+} Point3s;
+
 typedef struct Point2f
 {
 	Point2f()

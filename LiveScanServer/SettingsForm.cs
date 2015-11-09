@@ -56,6 +56,16 @@ namespace KinectServer
             chMerge.Checked = oSettings.bMergeScansForSave;
             txtICPIters.Text = oSettings.nNumICPIterations.ToString();
             txtRefinIters.Text = oSettings.nNumRefineIters.ToString();
+            if (oSettings.bSaveAsBinaryPLY)
+            {
+                rBinaryPly.Checked = true;
+                rAsciiPly.Checked = false;
+            }
+            else
+            {
+                rBinaryPly.Checked = false;
+                rAsciiPly.Checked = true;
+            }
         }
 
         void UpdateClients()
@@ -287,6 +297,18 @@ namespace KinectServer
         {
             oSettings.bStreamOnlyBodies = chBodyData.Checked;
             UpdateClients();
+        }
+
+        private void PlyFormat_CheckedChanged(object sender, EventArgs e)
+        {
+            if (rAsciiPly.Checked)
+            {
+                oSettings.bSaveAsBinaryPLY = false;
+            }
+            else
+            {
+                oSettings.bSaveAsBinaryPLY = true;
+            }
         }
     }
 }

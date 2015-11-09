@@ -217,7 +217,7 @@ namespace KinectServer
                     if (!oSettings.bMergeScansForSave)
                     {
                         string outputFilename = outDir + "\\" + nFrames.ToString().PadLeft(5, '0') + i.ToString() + ".ply";
-                        saveToPly(outputFilename, lFrameVertsAllDevices[i], lFrameRGBAllDevices[i]);                        
+                        saveToPly(outputFilename, lFrameVertsAllDevices[i], lFrameRGBAllDevices[i], oSettings.bSaveAsBinaryPLY);                        
                     }
                 }
 
@@ -225,7 +225,7 @@ namespace KinectServer
                 if (oSettings.bMergeScansForSave)
                 {
                     string outputFilename = outDir + "\\" + nFrames.ToString().PadLeft(5, '0') + ".ply";
-                    saveToPly(outputFilename, lFrameVerts, lFrameRGB);
+                    saveToPly(outputFilename, lFrameVerts, lFrameRGB, oSettings.bSaveAsBinaryPLY);
                 }
             }
         }
@@ -450,27 +450,53 @@ namespace KinectServer
             refineWorker.RunWorkerAsync();
         }
 
-        private void saveToPly(string filename, List<Single> vertices, List<byte> colors)
+        private void saveToPly(string filename, List<Single> vertices, List<byte> colors, bool binary)
         {
             int nVertices = vertices.Count / 3;
 
-            System.IO.StreamWriter file = new System.IO.StreamWriter(filename);
+            FileStream fileStream = File.Open(filename, FileMode.Create);
+
+            System.IO.StreamWriter streamWriter = new System.IO.StreamWriter(fileStream);
+            System.IO.BinaryWriter binaryWriter = new System.IO.BinaryWriter(fileStream);
 
             //PLY file header is written here.
-            file.WriteLine("ply\nformat ascii 1.0");
-            file.WriteLine("element vertex " + nVertices.ToString());
-            file.WriteLine("property float x\nproperty float y\nproperty float z\nproperty uchar red\nproperty uchar green\nproperty uchar blue\nend_header");
+            if (binary)
+                streamWriter.WriteLine("ply\nformat binary_little_endian 1.0");
+            else
+                streamWriter.WriteLine("ply\nformat ascii 1.0\n");
+            streamWriter.Write("element vertex " + nVertices.ToString() + "\n");
+            streamWriter.Write("property float x\nproperty float y\nproperty float z\nproperty uchar red\nproperty uchar green\nproperty uchar blue\nend_header\n");
+            streamWriter.Flush();
 
             //Vertex and color data are written here.
-            for (int j = 0; j < vertices.Count / 3; j++)
+            if (binary)
             {
-                string s = "";
-                for (int k = 0; k < 3; k++) s += vertices[j * 3 + k].ToString(CultureInfo.InvariantCulture) + " ";
-                for (int k = 0; k < 3; k++) s += colors[j * 3 + k].ToString(CultureInfo.InvariantCulture) + " ";
-                file.WriteLine(s);
+                for (int j = 0; j < vertices.Count / 3; j++)
+                {
+                    for (int k = 0; k < 3; k++)
+                        binaryWriter.Write(vertices[j * 3 + k]);
+                    for (int k = 0; k < 3; k++)
+                    {
+                        byte temp = colors[j * 3 + k];
+                        binaryWriter.Write(temp);
+                    }
+                }
             }
-
-            file.Close();
+            else
+            {
+                for (int j = 0; j < vertices.Count / 3; j++)
+                {
+                    string s = "";
+                    for (int k = 0; k < 3; k++) 
+                        s += vertices[j * 3 + k].ToString(CultureInfo.InvariantCulture) + " ";
+                    for (int k = 0; k < 3; k++) 
+                        s += colors[j * 3 + k].ToString(CultureInfo.InvariantCulture) + " ";
+                    streamWriter.WriteLine(s);
+                }
+            }
+            streamWriter.Flush();
+            binaryWriter.Flush();
+            fileStream.Close();
         }
 
         void RestartUpdateWorker()

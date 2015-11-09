@@ -206,8 +206,11 @@ namespace KinectServer
                 }
                 for (int j = 0; j < 3; j++)
                 {
-                    lFrameVerts.Add(BitConverter.ToSingle(buffer, startIdx));
-                    startIdx += 4;
+                    float val = BitConverter.ToInt16(buffer, startIdx);
+                    //converting from milimeters to meters
+                    val /= 1000.0f;
+                    lFrameVerts.Add(val);
+                    startIdx += 2;
                 }
             }
 

@@ -163,7 +163,7 @@ HRESULT ImageRenderer::Draw(BYTE* pImage, unsigned long cbImage, std::vector<Bod
     // Draw the bitmap stretched to the size of the window
     m_pRenderTarget->DrawBitmap(m_pBitmap);
       
-	for (int i = 0; i < vBodies.size(); i++)
+	for (unsigned int i = 0; i < vBodies.size(); i++)
 	{
 		if (vBodies[i].bTracked)
 		{
@@ -226,7 +226,7 @@ void ImageRenderer::DrawBody(Body &body)
 	DrawBone(body, JointType_KneeLeft, JointType_AnkleLeft);
 	DrawBone(body, JointType_AnkleLeft, JointType_FootLeft);
 
-	for (int i = 0; i < body.vJoints.size(); i++)
+	for (unsigned int i = 0; i < body.vJoints.size(); i++)
 	{
 		D2D1_POINT_2F tempPoint;
 		tempPoint.x = body.vJointsInColorSpace[i].X;

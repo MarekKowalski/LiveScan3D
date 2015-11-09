@@ -611,9 +611,9 @@ void LiveScanClient::HandleSocket()
 	}
 }
 
-void LiveScanClient::SendFrame(vector<Point3f> vertices, vector<RGB> RGB, vector<Body> body)
+void LiveScanClient::SendFrame(vector<Point3s> vertices, vector<RGB> RGB, vector<Body> body)
 {
-	int size = RGB.size() * (3 + 3 * sizeof(float)) + sizeof(int);
+	int size = RGB.size() * (3 + 3 * sizeof(short)) + sizeof(int);
 
 	vector<char> buffer(size);
 	char *ptr2 = (char*)vertices.data();
@@ -630,9 +630,9 @@ void LiveScanClient::SendFrame(vector<Point3f> vertices, vector<RGB> RGB, vector
 		buffer[pos++] = RGB[i].rgbBlue;
 
 
-		memcpy(buffer.data() + pos, ptr2, sizeof(float)* 3);
-		ptr2 += sizeof(float)* 3;
-		pos += sizeof(float)* 3;
+		memcpy(buffer.data() + pos, ptr2, sizeof(short)* 3);
+		ptr2 += sizeof(short) * 3;
+		pos += sizeof(short) * 3;
 	}
 
 	int nBodies = body.size();
@@ -745,8 +745,15 @@ void LiveScanClient::StoreFrame(Point3f *vertices, Point2f *mapping, RGB *color,
 	if (m_bFilter)
 		filter(goodVertices, goodColorPoints, m_nFilterNeighbors, m_fFilterThreshold);
 
+	vector<Point3s> goodVerticesShort(goodVertices.size());
+
+	for (unsigned int i = 0; i < goodVertices.size(); i++)
+	{
+		goodVerticesShort[i] = goodVertices[i];
+	}
+
 	m_vLastFrameBody = bodies;
-	m_vLastFrameVertices = goodVertices;
+	m_vLastFrameVertices = goodVerticesShort;
 	m_vLastFrameRGB = goodColorPoints;
 }
 
