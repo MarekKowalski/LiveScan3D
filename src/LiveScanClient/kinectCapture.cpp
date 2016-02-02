@@ -187,11 +187,11 @@ void KinectCapture::GetBodyFrame(IMultiSourceFrame* pMultiFrame)
 
 	if (SUCCEEDED(hr))
 	{
-		IBody* bodies[6] = { NULL };
-		pBodyFrame->GetAndRefreshBodyData(6, bodies);
+		IBody* bodies[BODY_COUNT] = { NULL };
+		pBodyFrame->GetAndRefreshBodyData(BODY_COUNT, bodies);
 
 		vBodies = std::vector<Body>(BODY_COUNT);
-		for (int i = 0; i < 6; i++)
+		for (int i = 0; i < BODY_COUNT; i++)
 		{		
 			if (bodies[i])
 			{

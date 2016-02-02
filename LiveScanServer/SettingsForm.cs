@@ -51,7 +51,8 @@ namespace KinectServer
 
             lisMarkers.DataSource = oSettings.lMarkerPoses;
 
-            chBodyData.Checked = oSettings.bStreamOnlyBodies;            
+            chBodyData.Checked = oSettings.bStreamOnlyBodies;
+            chSkeletons.Checked = oSettings.bShowSkeletons;
 
             chMerge.Checked = oSettings.bMergeScansForSave;
             txtICPIters.Text = oSettings.nNumICPIterations.ToString();
@@ -309,6 +310,11 @@ namespace KinectServer
             {
                 oSettings.bSaveAsBinaryPLY = true;
             }
+        }
+
+        private void chSkeletons_CheckedChanged(object sender, EventArgs e)
+        {
+            oSettings.bShowSkeletons = chSkeletons.Checked;
         }
     }
 }

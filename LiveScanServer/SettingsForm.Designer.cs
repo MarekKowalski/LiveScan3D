@@ -77,6 +77,7 @@
             this.rAsciiPly = new System.Windows.Forms.RadioButton();
             this.txtRefinIters = new System.Windows.Forms.TextBox();
             this.lbOuterIters = new System.Windows.Forms.Label();
+            this.chSkeletons = new System.Windows.Forms.CheckBox();
             this.grClient.SuspendLayout();
             this.grBody.SuspendLayout();
             this.grMarkers.SuspendLayout();
@@ -137,6 +138,7 @@
             // 
             // grBody
             // 
+            this.grBody.Controls.Add(this.chSkeletons);
             this.grBody.Controls.Add(this.label1);
             this.grBody.Controls.Add(this.chBodyData);
             this.grBody.Location = new System.Drawing.Point(9, 211);
@@ -149,7 +151,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(11, 43);
+            this.label1.Location = new System.Drawing.Point(8, 61);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(187, 13);
             this.label1.TabIndex = 20;
@@ -570,6 +572,17 @@
             this.lbOuterIters.TabIndex = 26;
             this.lbOuterIters.Text = "Num of refinement iters:";
             // 
+            // chSkeletons
+            // 
+            this.chSkeletons.AutoSize = true;
+            this.chSkeletons.Location = new System.Drawing.Point(11, 41);
+            this.chSkeletons.Name = "chSkeletons";
+            this.chSkeletons.Size = new System.Drawing.Size(154, 17);
+            this.chSkeletons.TabIndex = 21;
+            this.chSkeletons.Text = "show skeletons in live view";
+            this.chSkeletons.UseVisualStyleBackColor = true;
+            this.chSkeletons.CheckedChanged += new System.EventHandler(this.chSkeletons_CheckedChanged);
+            // 
             // SettingsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -648,6 +661,7 @@
         private System.Windows.Forms.RadioButton rBinaryPly;
         private System.Windows.Forms.Label lbFormat;
         private System.Windows.Forms.RadioButton rAsciiPly;
+        private System.Windows.Forms.CheckBox chSkeletons;
 
     }
 }

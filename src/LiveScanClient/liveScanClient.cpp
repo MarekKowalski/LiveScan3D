@@ -721,23 +721,25 @@ void LiveScanClient::StoreFrame(Point3f *vertices, Point2f *mapping, RGB *color,
 		}
 	}
 
-	for (unsigned int i = 0; i < bodies.size(); i++)
+	vector<Body> tempBodies = bodies;
+
+	for (unsigned int i = 0; i < tempBodies.size(); i++)
 	{
-		for (unsigned int j = 0; j < bodies[i].vJoints.size(); j++)
+		for (unsigned int j = 0; j < tempBodies[i].vJoints.size(); j++)
 		{
 			if (calibration.bCalibrated)
 			{
-				bodies[i].vJoints[j].Position.X += calibration.worldT[0];
-				bodies[i].vJoints[j].Position.Y += calibration.worldT[1];
-				bodies[i].vJoints[j].Position.Z += calibration.worldT[2];
+				tempBodies[i].vJoints[j].Position.X += calibration.worldT[0];
+				tempBodies[i].vJoints[j].Position.Y += calibration.worldT[1];
+				tempBodies[i].vJoints[j].Position.Z += calibration.worldT[2];
 
-				Point3f tempPoint(bodies[i].vJoints[j].Position.X, bodies[i].vJoints[j].Position.Y, bodies[i].vJoints[j].Position.Z);
+				Point3f tempPoint(tempBodies[i].vJoints[j].Position.X, tempBodies[i].vJoints[j].Position.Y, tempBodies[i].vJoints[j].Position.Z);
 
 				tempPoint = RotatePoint(tempPoint, calibration.worldR);
 
-				bodies[i].vJoints[j].Position.X = tempPoint.X;
-				bodies[i].vJoints[j].Position.Y = tempPoint.Y;
-				bodies[i].vJoints[j].Position.Z = tempPoint.Z;
+				tempBodies[i].vJoints[j].Position.X = tempPoint.X;
+				tempBodies[i].vJoints[j].Position.Y = tempPoint.Y;
+				tempBodies[i].vJoints[j].Position.Z = tempPoint.Z;
 			}
 		}
 	}
@@ -752,7 +754,7 @@ void LiveScanClient::StoreFrame(Point3f *vertices, Point2f *mapping, RGB *color,
 		goodVerticesShort[i] = goodVertices[i];
 	}
 
-	m_vLastFrameBody = bodies;
+	m_vLastFrameBody = tempBodies;
 	m_vLastFrameVertices = goodVerticesShort;
 	m_vLastFrameRGB = goodColorPoints;
 }

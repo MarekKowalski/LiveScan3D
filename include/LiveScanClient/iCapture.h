@@ -19,6 +19,12 @@
 
 struct Body
 {
+	Body()
+	{
+		bTracked = false;
+		vJoints.resize(JointType_Count);
+		vJointsInColorSpace.resize(JointType_Count);
+	}
 	bool bTracked;
 	std::vector<Joint> vJoints;
 	std::vector<Point2f> vJointsInColorSpace;

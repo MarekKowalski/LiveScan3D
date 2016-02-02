@@ -34,6 +34,7 @@ namespace KinectServer
         public BindingList<MarkerPose> lMarkerPoses = new BindingList<MarkerPose>();
 
         public bool bStreamOnlyBodies = false;
+        public bool bShowSkeletons = true;
 
         public int nNumICPIterations = 10;
         public int nNumRefineIters = 2;

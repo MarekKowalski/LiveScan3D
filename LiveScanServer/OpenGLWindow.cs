@@ -259,7 +259,7 @@ namespace KinectServer
             if ((DateTime.Now - tFPSUpdateTimer).Seconds >= 1)
             {
                 double FPS = nTickCounter / (DateTime.Now - tFPSUpdateTimer).TotalSeconds;
-                this.Title = "FPS: " + string.Format("{0:F}", FPS);
+                //this.Title = "FPS: " + string.Format("{0:F}", FPS);
 
                 tFPSUpdateTimer = DateTime.Now;
                 nTickCounter = 0;
@@ -292,42 +292,43 @@ namespace KinectServer
 
             lock (vertices)
             {
-                lock (settings)
-                {
-                    PointCount = vertices.Count / 3;
-                    //bounding box
-                    LineCount = 12;
-                    //markers
-                    LineCount += settings.lMarkerPoses.Count * 3;
-                    //cameras
-                    LineCount += cameraPoses.Count * 3;
+                bool bShowSkeletons = settings.bShowSkeletons;
+
+                PointCount = vertices.Count / 3;
+                //bounding box
+                LineCount = 12;
+                //markers
+                LineCount += settings.lMarkerPoses.Count * 3;
+                //cameras
+                LineCount += cameraPoses.Count * 3;
+                if (bShowSkeletons)
                     LineCount += 24 * bodies.Count;
 
-                    VBO = new VertexC4ubV3f[PointCount + 2 * LineCount];
+                VBO = new VertexC4ubV3f[PointCount + 2 * LineCount];
 
-                    for (int i = 0; i < PointCount; i++)
-                    {
-                        VBO[i].R = (byte)colors[i * 3];
-                        VBO[i].G = (byte)colors[i * 3 + 1];
-                        VBO[i].B = (byte)colors[i * 3 + 2];
-                        VBO[i].A = 255;
-                        VBO[i].Position.X = vertices[i * 3];
-                        VBO[i].Position.Y = vertices[i * 3 + 1];
-                        VBO[i].Position.Z = vertices[i * 3 + 2];
-                    }
-
-                    int iCurLineCount = 0;
-                    iCurLineCount += AddBoundingBox(PointCount + 2 * iCurLineCount);
-                    for (int i = 0; i < settings.lMarkerPoses.Count; i++)
-                    {
-                        iCurLineCount += AddMarker(PointCount + 2 * iCurLineCount, settings.lMarkerPoses[i].pose);
-                    }
-                    for (int i = 0; i < cameraPoses.Count; i++)
-                    {
-                        iCurLineCount += AddCamera(PointCount + 2 * iCurLineCount, cameraPoses[i]);
-                    }
-                    iCurLineCount += AddBodies(PointCount + 2 * iCurLineCount);
+                for (int i = 0; i < PointCount; i++)
+                {
+                    VBO[i].R = (byte)colors[i * 3];
+                    VBO[i].G = (byte)colors[i * 3 + 1];
+                    VBO[i].B = (byte)colors[i * 3 + 2];
+                    VBO[i].A = 255;
+                    VBO[i].Position.X = vertices[i * 3];
+                    VBO[i].Position.Y = vertices[i * 3 + 1];
+                    VBO[i].Position.Z = vertices[i * 3 + 2];
                 }
+
+                int iCurLineCount = 0;
+                iCurLineCount += AddBoundingBox(PointCount + 2 * iCurLineCount);
+                for (int i = 0; i < settings.lMarkerPoses.Count; i++)
+                {
+                    iCurLineCount += AddMarker(PointCount + 2 * iCurLineCount, settings.lMarkerPoses[i].pose);
+                }
+                for (int i = 0; i < cameraPoses.Count; i++)
+                {
+                    iCurLineCount += AddCamera(PointCount + 2 * iCurLineCount, cameraPoses[i]);
+                }
+                if (bShowSkeletons)
+                    iCurLineCount += AddBodies(PointCount + 2 * iCurLineCount);
             }
         }
 
@@ -574,6 +575,9 @@ namespace KinectServer
 
             for (int bodyIdx = 0; bodyIdx < bodies.Count; bodyIdx++)
             {
+                if (bodies[bodyIdx].bTracked == false)
+                    continue;
+
                 //Torso
                 n += AddBone(bodyIdx, JointType.JointType_Head, JointType.JointType_Neck, startIdx + n);
                 n += AddBone(bodyIdx, JointType.JointType_Neck, JointType.JointType_SpineShoulder, startIdx + n);
@@ -607,7 +611,8 @@ namespace KinectServer
                 n += AddBone(bodyIdx, JointType.JointType_HipLeft, JointType.JointType_KneeLeft, startIdx + n);
                 n += AddBone(bodyIdx, JointType.JointType_KneeLeft, JointType.JointType_AnkleLeft, startIdx + n);
                 n += AddBone(bodyIdx, JointType.JointType_AnkleLeft, JointType.JointType_FootLeft, startIdx + n);
-            }
+            }         
+
             return nLinesToAdd;
         }
 
