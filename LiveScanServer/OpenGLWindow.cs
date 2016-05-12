@@ -259,7 +259,7 @@ namespace KinectServer
             if ((DateTime.Now - tFPSUpdateTimer).Seconds >= 1)
             {
                 double FPS = nTickCounter / (DateTime.Now - tFPSUpdateTimer).TotalSeconds;
-                //this.Title = "FPS: " + string.Format("{0:F}", FPS);
+                this.Title = "FPS: " + string.Format("{0:F}", FPS);
 
                 tFPSUpdateTimer = DateTime.Now;
                 nTickCounter = 0;

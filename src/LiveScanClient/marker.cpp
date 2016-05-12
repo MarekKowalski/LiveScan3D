@@ -77,9 +77,8 @@ bool MarkerDetector::GetMarker(cv::Mat &img, MarkerInfo &marker)
 				order = false;
 			}
 
-			float test = cornersFloat[0].x - cornersFloat[1].x;
-
-			CornersSubPix(cornersFloat, contours[i], order);
+			//I have commented this out as it crashed for some people, if you want additional accuracy in calibration try to uncomment it.
+			//CornersSubPix(cornersFloat, contours[i], order);
 
 			vector<Point2f> cornersFloat2(nMarkerCorners);
 			vector<Point3f> points3D;			
