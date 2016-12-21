@@ -42,6 +42,7 @@ namespace KinectServer
         static extern float ICP(IntPtr verts1, IntPtr verts2, int nVerts1, int nVerts2, float[] R, float[] t, int maxIter = 200);
 
         KinectServer oServer;
+        TransferServer oTranfserServer;
 
         //Those three variables are shared with the OpenGLWindow class and are used to exchange data with it.
         //Vertices from all of the sensors
@@ -82,6 +83,9 @@ namespace KinectServer
 
             oServer = new KinectServer(oSettings);
             oServer.eSocketListChanged += new SocketListChangedHandler(UpdateListView);
+            oTranfserServer = new TransferServer();
+            oTranfserServer.lVertices = lAllVertices;
+            oTranfserServer.lColors = lAllColors;
 
             InitializeComponent();
         }
@@ -96,6 +100,7 @@ namespace KinectServer
             stream.Close();
 
             oServer.StopServer();
+            oTranfserServer.StopServer();
         }
 
         //Starts the server
@@ -106,11 +111,13 @@ namespace KinectServer
             if (bServerRunning)
             {
                 oServer.StartServer();
+                oTranfserServer.StartServer();
                 btStart.Text = "Stop server";
             }
             else
             {
                 oServer.StopServer();
+                oTranfserServer.StopServer();
                 btStart.Text = "Start server";
             }
         }
