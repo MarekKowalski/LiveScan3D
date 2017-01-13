@@ -99,6 +99,7 @@ bool KinectCapture::AcquireFrame()
 	GetBodyFrame(pMultiFrame);
 	GetBodyIndexFrame(pMultiFrame);
 
+	SafeRelease(pMultiFrame);
 
 	return true;
 }
@@ -202,7 +203,12 @@ void KinectCapture::GetBodyFrame(IMultiSourceFrame* pMultiFrame)
 				bodies[i]->GetJoints(JointType_Count, joints);
 
 				vBodies[i].vJoints.assign(joints, joints + JointType_Count);
-				vBodies[i].bTracked = isTracked;
+
+				if (isTracked == TRUE)
+					vBodies[i].bTracked = true;
+				else
+					vBodies[i].bTracked = false;
+
 				vBodies[i].vJointsInColorSpace.resize(JointType_Count);
 
 				for (int j = 0; j < JointType_Count; j++)
