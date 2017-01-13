@@ -52,6 +52,8 @@ private:
 	bool m_bConfirmCaptured;
 	bool m_bConfirmCalibrated;
 	bool m_bShowDepth;
+	bool m_bFrameCompression;
+	int m_iCompressionLevel;
 	
 	SocketClient *m_pClientSocket;
 	std::vector<float> m_vBounds;

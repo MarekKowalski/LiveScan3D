@@ -42,7 +42,7 @@ namespace KinectServer
 
         public List<byte> lFrameRGB = new List<byte>();
         public List<Single> lFrameVerts = new List<Single>();
-        public List<Body> lBodies = new List<Body>();
+        public List<Body> lBodies = new List<Body>(); 
 
         public event SocketChangedHandler eChanged;
 
@@ -165,19 +165,16 @@ namespace KinectServer
                     return;
             }
 
-            oSocket.Receive(buffer, 4, SocketFlags.None);
-
-            //string result = System.Text.Encoding.UTF8.GetString(buffer);
-            //n_to_read = Int32.Parse(result);
-
+            oSocket.Receive(buffer, 8, SocketFlags.None);
             nToRead = BitConverter.ToInt32(buffer, 0);
+            int iCompressed = BitConverter.ToInt32(buffer, 4);
 
             if (nToRead == -1)
             {
                 bNoMoreStoredFrames = true;
                 return;
             }
-            
+
             buffer = new byte[nToRead];
             int nAlreadyRead = 0;
 
@@ -191,6 +188,12 @@ namespace KinectServer
 
                 nAlreadyRead += oSocket.Receive(buffer, nAlreadyRead, nToRead - nAlreadyRead, SocketFlags.None);
             }
+
+            
+
+
+            if (iCompressed == 1)
+                buffer = ZSTDDecompressor.Decompress(buffer);
 
             //Receive depth and color data
             int startIdx = 0;

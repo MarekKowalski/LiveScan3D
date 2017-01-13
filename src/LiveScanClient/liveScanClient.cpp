@@ -19,6 +19,7 @@
 #include <chrono>
 #include <strsafe.h>
 #include <fstream>
+#include "zstd.h"
 
 std::mutex m_mSocketThreadMutex;
 
@@ -57,6 +58,8 @@ LiveScanClient::LiveScanClient() :
 	m_bConfirmCalibrated(false),
 	m_bShowDepth(false),
 	m_bSocketThread(true),
+	m_bFrameCompression(true),
+	m_iCompressionLevel(2),
 	m_pClientSocket(NULL),
 	m_nFilterNeighbors(10),
 	m_fFilterThreshold(0.01f)
@@ -130,7 +133,7 @@ int LiveScanClient::Run(HINSTANCE hInstance, int nCmdShow)
     MSG       msg = {0};
     WNDCLASS  wc;
 
-    // Dialog custom window class
+	// Dialog custom window class
     ZeroMemory(&wc, sizeof(wc));
     wc.style         = CS_HREDRAW | CS_VREDRAW;
     wc.cbWndExtra    = DLGWINDOWEXTRA;
@@ -499,10 +502,13 @@ void LiveScanClient::HandleSocket()
 			}
 
 			m_bStreamOnlyBodies = (received[i] != 0);
-			i++;
+			i += 1;
 
-			//so that we do not lose the next character in the stream
-			i--;
+			m_iCompressionLevel = *(int*)(received.c_str() + i);
+			if (m_iCompressionLevel > 0)
+				m_bFrameCompression = true;
+			else
+				m_bFrameCompression = false;
 		}
 		//send stored frame
 		else if (received[i] == MSG_REQUEST_STORED_FRAME)
@@ -634,7 +640,7 @@ void LiveScanClient::SendFrame(vector<Point3s> vertices, vector<RGB> RGB, vector
 		ptr2 += sizeof(short) * 3;
 		pos += sizeof(short) * 3;
 	}
-
+	
 	int nBodies = body.size();
 	size += sizeof(nBodies);
 	for (int i = 0; i < nBodies; i++)
@@ -682,9 +688,25 @@ void LiveScanClient::SendFrame(vector<Point3s> vertices, vector<RGB> RGB, vector
 		}
 	}
 
-	m_pClientSocket->SendBytes((char*)&size, sizeof(int));
-	m_pClientSocket->SendBytes(buffer.data(), size);
+	int iCompression = static_cast<int>(m_bFrameCompression);
 
+	if (m_bFrameCompression)
+	{
+		char buf[8];
+		// *2, because according to zstd documentation, increasing the size of the output buffer above a 
+		// bound should speed up the compression.
+		int cBuffSize = ZSTD_compressBound(size) * 2;	
+		vector<char> compressedBuffer(cBuffSize);
+		int cSize = ZSTD_compress(compressedBuffer.data(), cBuffSize, buffer.data(), size, m_iCompressionLevel);
+		size = cSize; 
+		buffer = compressedBuffer;
+	}
+	char header[8];
+	memcpy(header, (char*)&size, sizeof(size));
+	memcpy(header + 4, (char*)&iCompression, sizeof(iCompression));
+
+	m_pClientSocket->SendBytes((char*)&header, sizeof(int) * 2);
+	m_pClientSocket->SendBytes(buffer.data(), size);
 }
 
 void LiveScanClient::StoreFrame(Point3f *vertices, Point2f *mapping, RGB *color, vector<Body> &bodies, BYTE* bodyIndex)
