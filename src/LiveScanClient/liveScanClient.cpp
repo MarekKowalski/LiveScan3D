@@ -53,6 +53,7 @@ LiveScanClient::LiveScanClient() :
 	m_bFilter(false),
 	m_bStreamOnlyBodies(false),
 	m_bCaptureFrame(false),
+	m_bCaptureToFile(true),
 	m_bConnected(false),
 	m_bConfirmCaptured(false),
 	m_bConfirmCalibrated(false),
@@ -183,6 +184,8 @@ int LiveScanClient::Run(HINSTANCE hInstance, int nCmdShow)
     return static_cast<int>(msg.wParam);
 }
 
+
+
 void LiveScanClient::UpdateFrame()
 {
 	if (!pCapture->bInitialized)
@@ -203,10 +206,19 @@ void LiveScanClient::UpdateFrame()
 
 		if (m_bCaptureFrame)
 		{
-			m_vGatheredVertices.push_back(m_vLastFrameVertices);
-			m_vGatheredRGBPoints.push_back(m_vLastFrameRGB);
-			m_bConfirmCaptured = true;
-			m_bCaptureFrame = false;
+			if (m_bCaptureToFile)
+			{
+				m_framesFileWriterReader.writeFrame(m_vLastFrameVertices, m_vLastFrameRGB);
+				m_bConfirmCaptured = true;
+				m_bCaptureFrame = false;
+			}
+			else
+			{
+				m_vGatheredVertices.push_back(m_vLastFrameVertices);
+				m_vGatheredRGBPoints.push_back(m_vLastFrameRGB);
+				m_bConfirmCaptured = true;
+				m_bCaptureFrame = false;
+			}
 		}
 	}
 
@@ -515,18 +527,32 @@ void LiveScanClient::HandleSocket()
 		{
 			byteToSend = MSG_STORED_FRAME;
 			m_pClientSocket->SendBytes(&byteToSend, 1);
-
-			if (m_vGatheredRGBPoints.size() > 0)
+			if (m_bCaptureToFile)
 			{
-				SendFrame(m_vGatheredVertices[0], m_vGatheredRGBPoints[0], m_vLastFrameBody);
-
-				m_vGatheredRGBPoints.erase(m_vGatheredRGBPoints.begin(), m_vGatheredRGBPoints.begin() + 1);
-				m_vGatheredVertices.erase(m_vGatheredVertices.begin(), m_vGatheredVertices.begin() + 1);
+				vector<Point3s> points;
+				vector<RGB> colors; 
+				bool res = m_framesFileWriterReader.readFrame(points, colors);
+				if (res == false)
+				{
+					int size = -1;
+					m_pClientSocket->SendBytes((char*)&size, 4);
+				} else
+					SendFrame(points, colors, m_vLastFrameBody);
 			}
 			else
 			{
-				int size = -1;
-				m_pClientSocket->SendBytes((char*)&size, 4);
+				if (m_vGatheredRGBPoints.size() > 0)
+				{
+					SendFrame(m_vGatheredVertices[0], m_vGatheredRGBPoints[0], m_vLastFrameBody);
+
+					m_vGatheredRGBPoints.erase(m_vGatheredRGBPoints.begin(), m_vGatheredRGBPoints.begin() + 1);
+					m_vGatheredVertices.erase(m_vGatheredVertices.begin(), m_vGatheredVertices.begin() + 1);
+				}
+				else
+				{
+					int size = -1;
+					m_pClientSocket->SendBytes((char*)&size, 4);
+				}
 			}
 		}
 		//send last frame
@@ -692,7 +718,6 @@ void LiveScanClient::SendFrame(vector<Point3s> vertices, vector<RGB> RGB, vector
 
 	if (m_bFrameCompression)
 	{
-		char buf[8];
 		// *2, because according to zstd documentation, increasing the size of the output buffer above a 
 		// bound should speed up the compression.
 		int cBuffSize = ZSTD_compressBound(size) * 2;	

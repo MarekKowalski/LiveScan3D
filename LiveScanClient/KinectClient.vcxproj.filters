@@ -54,6 +54,9 @@
     <ClInclude Include="..\include\LiveScanClient\utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\LiveScanClient\framesFileWriterReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\socketCS.cpp">
@@ -84,6 +87,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\LiveScanClient\utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\LiveScanClient\framesFileWriterReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

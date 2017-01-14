@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClInclude Include="..\include\LiveScanClient\calibration.h" />
     <ClInclude Include="..\include\LiveScanClient\filter.h" />
+    <ClInclude Include="..\include\LiveScanClient\framesFileWriterReader.h" />
     <ClInclude Include="..\include\LiveScanClient\iCapture.h" />
     <ClInclude Include="..\include\LiveScanClient\imageRenderer.h" />
     <ClInclude Include="..\include\LiveScanClient\iMarker.h" />
@@ -28,6 +29,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\LiveScanClient\calibration.cpp" />
     <ClCompile Include="..\src\LiveScanClient\filter.cpp" />
+    <ClCompile Include="..\src\LiveScanClient\framesFileWriterReader.cpp" />
     <ClCompile Include="..\src\LiveScanClient\iCapture.cpp" />
     <ClCompile Include="..\src\LiveScanClient\imageRenderer.cpp" />
     <ClCompile Include="..\src\LiveScanClient\iMarker.cpp" />
