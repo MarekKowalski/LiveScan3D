@@ -28,6 +28,7 @@ While all of our code is licensed under the MIT license, the 3rd party libraries
   * nanoflann - https://github.com/jlblancoc/nanoflann, BSD license
   * OpenCV - https://github.com/Itseez/opencv, 3-clause BSD license
   * OpenTK - https://github.com/opentk/opentk, MIT/X11 license
+  * ZSTD - https://github.com/facebook/zstd, BSD license
   * SocketCS - http://www.adp-gmbh.ch/win/misc/sockets.html
  
 If you use this software in your research, then please use the following citation:

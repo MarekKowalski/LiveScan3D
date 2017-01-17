@@ -17,13 +17,20 @@
 #include "Kinect.h"
 #include "opencv\cv.h"
 
-
+#include <fstream>
 
 Calibration::Calibration()
 {
 	bCalibrated = false;
 	nSampleCounter = 0;
 	nRequiredSamples = 20;
+
+	worldT = vector<float>(3, 0.0f);
+	for (int i = 0; i < 3; i++)
+	{
+		worldR.push_back(vector<float>(3, 0.0f));
+		worldR[i][i] = 1.0f;
+	}
 
 	pDetector = new MarkerDetector();
 }
@@ -102,17 +109,10 @@ bool Calibration::Calibrate(RGB *pBuffer, Point3f *pCameraCoordinates, int cColo
 		}
 	}
 
-	cameraR = worldR;
-	cameraT = RotatePoint(worldT, cameraR);
-
 	vector<float> translationIncr(3);
 	translationIncr[0] = markerPose.t[0];
 	translationIncr[1] = markerPose.t[1];
-	translationIncr[2] = markerPose.t[2];
-
-	cameraT[0] += translationIncr[0];
-	cameraT[1] += translationIncr[1];
-	cameraT[2] += translationIncr[2];
+	translationIncr[2] = markerPose.t[2];;
 
 	translationIncr = InverseRotatePoint(translationIncr, worldR);
 
@@ -125,7 +125,48 @@ bool Calibration::Calibrate(RGB *pBuffer, Point3f *pCameraCoordinates, int cColo
 	marker3DSamples.clear();
 	nSampleCounter = 0;
 
+	SaveCalibration();
+
 	return true;
+}
+
+bool Calibration::LoadCalibration()
+{
+	ifstream file;
+	file.open("calibration.txt");
+	if (!file.is_open())
+		return false;
+
+	for (int i = 0; i < 3; i++)
+		file >> worldT[i];
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+			file >> worldR[i][j];
+	}
+	file >> iUsedMarkerId;
+	file >> bCalibrated;
+
+	return true;
+}
+
+void Calibration::SaveCalibration()
+{
+	ofstream file;
+	file.open("calibration.txt");
+	for (int i = 0; i < 3; i++)
+		file << worldT[i] << " ";
+	file << endl;
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+			file << worldR[i][j];
+		file << endl;
+	}
+	file << iUsedMarkerId << endl;
+	file << bCalibrated << endl;
+
+	file.close();
 }
 
 void Calibration::Procrustes(MarkerInfo &marker, vector<Point3f> &markerInWorld, vector<float> &worldToMarkerT, vector<vector<float>> &worldToMarkerR)
@@ -231,8 +272,6 @@ bool Calibration::GetMarkerCorners3D(vector<Point3f> &marker3D, MarkerInfo &mark
 
 	return true;
 }
-
-
 
 vector<float> InverseRotatePoint(vector<float> &point, std::vector<std::vector<float>> &R)
 {

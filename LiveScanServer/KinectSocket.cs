@@ -99,7 +99,7 @@ namespace KinectServer
 
         public void SendCalibrationData()
         {
-            int size = 1 + 2 * (9 + 3) * sizeof(float);
+            int size = 1 + (9 + 3) * sizeof(float);
             byte[] data = new byte[size];
             int i = 0;
 
@@ -110,12 +110,6 @@ namespace KinectServer
             i += 9 * sizeof(float);
             Buffer.BlockCopy(oWorldTransform.t, 0, data, i, 3 * sizeof(float));
             i += 3 * sizeof(float);
-
-            Buffer.BlockCopy(oCameraPose.R, 0, data, i, 9 * sizeof(float));
-            i += 9 * sizeof(float);
-            Buffer.BlockCopy(oCameraPose.t, 0, data, i, 3 * sizeof(float));
-            i += 3 * sizeof(float);
-
 
             if (SocketConnected())
                 oSocket.Send(data);
@@ -141,11 +135,15 @@ namespace KinectServer
             buffer = Receive(sizeof(float) * 3);
             Buffer.BlockCopy(buffer, 0, oWorldTransform.t, 0, sizeof(float) * 3);
 
-            buffer = Receive(sizeof(float) * 9);
-            Buffer.BlockCopy(buffer, 0, oCameraPose.R, 0, sizeof(float) * 9);
-
-            buffer = Receive(sizeof(float) * 3);
-            Buffer.BlockCopy(buffer, 0, oCameraPose.t, 0, sizeof(float) * 3);
+            oCameraPose.R = oWorldTransform.R;
+            for (int i = 0; i < 3; i++)
+            {
+                oCameraPose.t[i] = 0.0f;
+                for (int j = 0; j < 3; j++)
+                {
+                    oCameraPose.t[i] += oWorldTransform.t[j] * oWorldTransform.R[i, j];
+                }
+            }
 
             UpdateSocketState();
         }

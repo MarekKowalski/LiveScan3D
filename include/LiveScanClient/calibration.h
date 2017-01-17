@@ -34,9 +34,6 @@ public:
 	vector<vector<float>> worldR;
 	int iUsedMarkerId;
 
-	vector<float> cameraT;
-	vector<vector<float>> cameraR;
-
 	vector<MarkerPose> markerPoses;
 
 	bool bCalibrated;
@@ -45,6 +42,8 @@ public:
 	~Calibration();
 
 	bool Calibrate(RGB *pBuffer, Point3f *pCameraCoordinates, int cColorWidth, int cColorHeight);
+	bool LoadCalibration();
+	void SaveCalibration();
 private:
 	IMarker *pDetector;
 	int nSampleCounter;

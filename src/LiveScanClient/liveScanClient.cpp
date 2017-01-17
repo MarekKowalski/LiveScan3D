@@ -79,6 +79,8 @@ LiveScanClient::LiveScanClient() :
 	m_vBounds.push_back(0.5);
 	m_vBounds.push_back(0.5);
 	m_vBounds.push_back(0.5);
+
+	calibration.LoadCalibration();
 }
   
 LiveScanClient::~LiveScanClient()
@@ -347,6 +349,9 @@ LRESULT CALLBACK LiveScanClient::DlgProc(HWND hWnd, UINT message, WPARAM wParam,
 						m_pClientSocket = new SocketClient(address, 48001);
 
 						m_bConnected = true;
+						if (calibration.bCalibrated)
+							m_bConfirmCalibrated = true;
+
 						SetDlgItemTextA(m_hWnd, IDC_BUTTON_CONNECT, "Disconnect");
 						//Clear the status bar so that the "Failed to connect..." disappears.
 						SetStatusMessage(L"", 1, true);
@@ -581,20 +586,6 @@ void LiveScanClient::HandleSocket()
 				i += sizeof(float);
 			}
 
-			for (int j = 0; j < 3; j++)
-			{
-				for (int k = 0; k < 3; k++)
-				{
-					calibration.cameraR[j][k] = *(float*)(received.c_str() + i);
-					i += sizeof(float);
-				}
-			}
-			for (int j = 0; j < 3; j++)
-			{
-				calibration.cameraT[j] = *(float*)(received.c_str() + i);
-				i += sizeof(float);
-			}
-
 			//so that we do not lose the next character in the stream
 			i--;
 		}
@@ -614,7 +605,7 @@ void LiveScanClient::HandleSocket()
 
 	if (m_bConfirmCalibrated)
 	{
-		int size = 2 * (9 + 3) * sizeof(float) + sizeof(int) + 1;
+		int size = (9 + 3) * sizeof(float) + sizeof(int) + 1;
 		char *buffer = new char[size];
 		buffer[0] = MSG_CONFIRM_CALIBRATED;
 		int i = 1;
@@ -629,14 +620,6 @@ void LiveScanClient::HandleSocket()
 		i += 3 * sizeof(float);
 		memcpy(buffer + i, calibration.worldT.data(), 3 * sizeof(float));
 		i += 3 * sizeof(float);
-
-		memcpy(buffer + i, calibration.cameraR[0].data(), 3 * sizeof(float));
-		i += 3 * sizeof(float);
-		memcpy(buffer + i, calibration.cameraR[1].data(), 3 * sizeof(float));
-		i += 3 * sizeof(float);
-		memcpy(buffer + i, calibration.cameraR[2].data(), 3 * sizeof(float));
-		i += 3 * sizeof(float);
-		memcpy(buffer + i, calibration.cameraT.data(), 3 * sizeof(float));
 
 		m_pClientSocket->SendBytes(buffer, size);
 		m_bConfirmCalibrated = false;
