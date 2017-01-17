@@ -35,6 +35,7 @@ namespace KinectServer
 
         public bool bStreamOnlyBodies = false;
         public bool bShowSkeletons = true;
+        public int iCompressionLevel = 2;       // 0 for no compression, 2 is recommended
 
         public int nNumICPIterations = 10;
         public int nNumRefineIters = 2;
@@ -95,6 +96,9 @@ namespace KinectServer
                 lData.Add(1);
             else
                 lData.Add(0);
+
+            bTemp = BitConverter.GetBytes(iCompressionLevel);
+            lData.AddRange(bTemp);
 
             return lData;
         }

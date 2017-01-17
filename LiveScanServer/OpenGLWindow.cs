@@ -18,6 +18,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Globalization;
+using System.Windows.Forms.Layout;
 
 using System.Diagnostics;
 
@@ -42,6 +43,8 @@ namespace KinectServer
         ECameraMode CameraMode = ECameraMode.CAMERA_NONE;
 
         static float KEYBOARD_MOVE_SPEED = 0.01f;
+
+        bool IsFullscreen = false;
 
         static float MOUSE_ORBIT_SPEED = 0.30f;     // 0 = SLOWEST, 1 = FASTEST
         static float MOUSE_DOLLY_SPEED = 0.2f;     // same as above...but much more sensitive
@@ -79,7 +82,7 @@ namespace KinectServer
 
         /// <summary>Creates a 800x600 window with the specified title.</summary>
         public OpenGLWindow()
-            : base(800, 600)
+            : base(800, 600, GraphicsMode.Default, "LiveScan")
         {
             this.VSync = VSyncMode.Off;
             MouseUp += new EventHandler<MouseButtonEventArgs>(OnMouseButtonUp);
@@ -88,7 +91,7 @@ namespace KinectServer
             MouseWheel += new EventHandler<MouseWheelEventArgs>(OnMouseWheelChanged);
 
             KeyDown += new EventHandler<KeyboardKeyEventArgs>(OnKeyDown);
-
+            
             cameraPosition[0] = 0;
             cameraPosition[1] = 0;
             cameraPosition[2] = 1.0f;
@@ -100,6 +103,22 @@ namespace KinectServer
         public void CloudUpdateTick()
         {
             nTickCounter++;
+        }
+
+        public void ToggleFullscreen()
+        {
+            if (IsFullscreen)
+            {
+                WindowBorder = WindowBorder.Resizable;
+                WindowState = WindowState.Normal;
+                ClientSize = new System.Drawing.Size(800, 600);
+            }
+            else
+            {
+                WindowBorder = WindowBorder.Hidden;
+                WindowState = WindowState.Fullscreen;
+            }
+            IsFullscreen = !IsFullscreen;
         }
 
         void OnKeyDown(object sender, KeyboardKeyEventArgs e)
@@ -289,6 +308,8 @@ namespace KinectServer
                 cameraPosition[2] += KEYBOARD_MOVE_SPEED;
             if (keyboard[Key.D])
                 cameraPosition[0] += KEYBOARD_MOVE_SPEED;
+            if (keyboard[Key.F])
+                ToggleFullscreen();
 
             lock (vertices)
             {

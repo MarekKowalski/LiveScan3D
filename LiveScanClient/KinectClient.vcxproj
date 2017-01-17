@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClInclude Include="..\include\LiveScanClient\calibration.h" />
     <ClInclude Include="..\include\LiveScanClient\filter.h" />
+    <ClInclude Include="..\include\LiveScanClient\frameFileWriterReader.h" />
     <ClInclude Include="..\include\LiveScanClient\iCapture.h" />
     <ClInclude Include="..\include\LiveScanClient\imageRenderer.h" />
     <ClInclude Include="..\include\LiveScanClient\iMarker.h" />
@@ -28,6 +29,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\LiveScanClient\calibration.cpp" />
     <ClCompile Include="..\src\LiveScanClient\filter.cpp" />
+    <ClCompile Include="..\src\LiveScanClient\frameFileWriterReader.cpp" />
     <ClCompile Include="..\src\LiveScanClient\iCapture.cpp" />
     <ClCompile Include="..\src\LiveScanClient\imageRenderer.cpp" />
     <ClCompile Include="..\src\LiveScanClient\iMarker.cpp" />
@@ -91,7 +93,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>c:\Program Files\Microsoft SDKs\Kinect\v2.0_1409\Lib\x86\;D:\opencv\build\x86\vc12\lib;$(KINECTSDK20_DIR)\lib\x86;$(SolutionDir)lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_highgui248d.lib;opencv_calib3d248d.lib;opencv_imgproc248d.lib;opencv_core248d.lib;kinect20.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_highgui248d.lib;opencv_calib3d248d.lib;opencv_imgproc248d.lib;opencv_core248d.lib;kinect20.lib;kernel32.lib;libzstdd.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>NotSet</SubSystem>
     </Link>
   </ItemDefinitionGroup>
@@ -111,7 +113,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opencv_highgui248.lib;opencv_calib3d248.lib;opencv_imgproc248.lib;opencv_core248.lib;kinect20.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_highgui248.lib;opencv_calib3d248.lib;opencv_imgproc248.lib;opencv_core248.lib;kinect20.lib;libzstd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>c:\Program Files\Microsoft SDKs\Kinect\v2.0_1409\Lib\x86\;D:\opencv\build\x86\vc12\lib;$(KINECTSDK20_DIR)\lib\x86;$(SolutionDir)lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>

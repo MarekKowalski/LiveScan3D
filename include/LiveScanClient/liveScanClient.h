@@ -20,6 +20,7 @@
 #include "calibration.h"
 #include "utils.h"
 #include "KinectCapture.h"
+#include "frameFileWriterReader.h"
 #include <thread>
 #include <mutex>
 
@@ -52,7 +53,13 @@ private:
 	bool m_bConfirmCaptured;
 	bool m_bConfirmCalibrated;
 	bool m_bShowDepth;
-	
+	bool m_bFrameCompression;
+	int m_iCompressionLevel;
+	bool m_bCaptureToFile;			// false if capture frames to memory
+
+	FrameFileWriterReader m_framesFileWriterReader;
+
+
 	SocketClient *m_pClientSocket;
 	std::vector<float> m_vBounds;
 
