@@ -333,6 +333,7 @@ namespace KinectServer
                 if (!tryParse)
                     oSettings.iCompressionLevel = 0;
             }
+            UpdateClients();
         }
     }
 }

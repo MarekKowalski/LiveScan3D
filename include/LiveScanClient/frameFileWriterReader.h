@@ -6,10 +6,10 @@
 #include <chrono>
 #include "utils.h"
 
-class FramesFileWriterReader
+class FrameFileWriterReader
 {
 public:
-	FramesFileWriterReader();
+    FrameFileWriterReader();
 	void openNewFileForWriting();
 	void openCurrentFileForReading();
 	
@@ -25,7 +25,7 @@ public:
 
 	void closeFileIfOpened();
 
-	~FramesFileWriterReader();
+    ~FrameFileWriterReader();
 
 private:
 	void resetTimer();

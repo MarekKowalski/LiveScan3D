@@ -20,7 +20,7 @@
 #include "calibration.h"
 #include "utils.h"
 #include "KinectCapture.h"
-#include "framesFileWriterReader.h"
+#include "frameFileWriterReader.h"
 #include <thread>
 #include <mutex>
 
@@ -57,7 +57,7 @@ private:
 	int m_iCompressionLevel;
 	bool m_bCaptureToFile;			// false if capture frames to memory
 
-	FramesFileWriterReader m_framesFileWriterReader;
+	FrameFileWriterReader m_framesFileWriterReader;
 
 
 	SocketClient *m_pClientSocket;

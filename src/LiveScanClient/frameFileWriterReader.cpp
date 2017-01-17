@@ -1,13 +1,13 @@
-#include "framesFileWriterReader.h"
+#include "frameFileWriterReader.h"
 
 #include <ctime>
 
-FramesFileWriterReader::FramesFileWriterReader()
+FrameFileWriterReader::FrameFileWriterReader()
 {
 
 }
 
-void FramesFileWriterReader::closeFileIfOpened()
+void FrameFileWriterReader::closeFileIfOpened()
 {
 	if (m_pFileHandle == nullptr)
 		return;
@@ -18,18 +18,18 @@ void FramesFileWriterReader::closeFileIfOpened()
 	m_bFileOpenedForWriting = false;
 }
 
-void FramesFileWriterReader::resetTimer()
+void FrameFileWriterReader::resetTimer()
 {
 	recording_start_time = std::chrono::steady_clock::now();
 }
 
-int FramesFileWriterReader::getRecordingTimeMilliseconds()
+int FrameFileWriterReader::getRecordingTimeMilliseconds()
 {
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 	return static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds >(end - recording_start_time).count());
 }
 
-void FramesFileWriterReader::openCurrentFileForReading()
+void FrameFileWriterReader::openCurrentFileForReading()
 {
 	closeFileIfOpened();
 
@@ -39,7 +39,7 @@ void FramesFileWriterReader::openCurrentFileForReading()
 	m_bFileOpenedForWriting = false;
 }
 
-void FramesFileWriterReader::openNewFileForWriting()
+void FrameFileWriterReader::openNewFileForWriting()
 {
 	closeFileIfOpened();
 
@@ -56,7 +56,7 @@ void FramesFileWriterReader::openNewFileForWriting()
 	resetTimer();
 }
 
-bool FramesFileWriterReader::readFrame(std::vector<Point3s> &outPoints, std::vector<RGB> &outColors)
+bool FrameFileWriterReader::readFrame(std::vector<Point3s> &outPoints, std::vector<RGB> &outColors)
 {
 	if (!m_bFileOpenedForReading)
 		openCurrentFileForReading();
@@ -86,7 +86,7 @@ bool FramesFileWriterReader::readFrame(std::vector<Point3s> &outPoints, std::vec
 }
 
 
-void FramesFileWriterReader::writeFrame(std::vector<Point3s> points, std::vector<RGB> colors)
+void FrameFileWriterReader::writeFrame(std::vector<Point3s> points, std::vector<RGB> colors)
 {
 	if (!m_bFileOpenedForWriting)
 		openNewFileForWriting();
@@ -103,7 +103,7 @@ void FramesFileWriterReader::writeFrame(std::vector<Point3s> points, std::vector
 	fprintf(f, "\n");
 }
 
-FramesFileWriterReader::~FramesFileWriterReader()
+FrameFileWriterReader::~FrameFileWriterReader()
 {
 	closeFileIfOpened();
 }
