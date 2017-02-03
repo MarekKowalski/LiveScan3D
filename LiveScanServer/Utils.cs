@@ -14,6 +14,8 @@
 //    }
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Globalization;
 
 namespace KinectServer
 {
@@ -156,5 +158,57 @@ namespace KinectServer
         public bool bTracked;
         public List<Joint> lJoints;
         public List<Point2f> lJointsInColorSpace;
+    }
+
+    public class Utils
+    {
+        public static void saveToPly(string filename, List<Single> vertices, List<byte> colors, bool binary)
+        {
+            int nVertices = vertices.Count / 3;
+
+            FileStream fileStream = File.Open(filename, FileMode.Create);
+
+            System.IO.StreamWriter streamWriter = new System.IO.StreamWriter(fileStream);
+            System.IO.BinaryWriter binaryWriter = new System.IO.BinaryWriter(fileStream);
+
+            //PLY file header is written here.
+            if (binary)
+                streamWriter.WriteLine("ply\nformat binary_little_endian 1.0");
+            else
+                streamWriter.WriteLine("ply\nformat ascii 1.0\n");
+            streamWriter.Write("element vertex " + nVertices.ToString() + "\n");
+            streamWriter.Write("property float x\nproperty float y\nproperty float z\nproperty uchar red\nproperty uchar green\nproperty uchar blue\nend_header\n");
+            streamWriter.Flush();
+
+            //Vertex and color data are written here.
+            if (binary)
+            {
+                for (int j = 0; j < vertices.Count / 3; j++)
+                {
+                    for (int k = 0; k < 3; k++)
+                        binaryWriter.Write(vertices[j * 3 + k]);
+                    for (int k = 0; k < 3; k++)
+                    {
+                        byte temp = colors[j * 3 + k];
+                        binaryWriter.Write(temp);
+                    }
+                }
+            }
+            else
+            {
+                for (int j = 0; j < vertices.Count / 3; j++)
+                {
+                    string s = "";
+                    for (int k = 0; k < 3; k++)
+                        s += vertices[j * 3 + k].ToString(CultureInfo.InvariantCulture) + " ";
+                    for (int k = 0; k < 3; k++)
+                        s += colors[j * 3 + k].ToString(CultureInfo.InvariantCulture) + " ";
+                    streamWriter.WriteLine(s);
+                }
+            }
+            streamWriter.Flush();
+            binaryWriter.Flush();
+            fileStream.Close();
+        }
     }
 }

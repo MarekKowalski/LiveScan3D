@@ -53,7 +53,6 @@ LiveScanClient::LiveScanClient() :
 	m_bFilter(false),
 	m_bStreamOnlyBodies(false),
 	m_bCaptureFrame(false),
-	m_bCaptureToFile(true),
 	m_bConnected(false),
 	m_bConfirmCaptured(false),
 	m_bConfirmCalibrated(false),
@@ -208,19 +207,9 @@ void LiveScanClient::UpdateFrame()
 
 		if (m_bCaptureFrame)
 		{
-			if (m_bCaptureToFile)
-			{
-				m_framesFileWriterReader.writeFrame(m_vLastFrameVertices, m_vLastFrameRGB);
-				m_bConfirmCaptured = true;
-				m_bCaptureFrame = false;
-			}
-			else
-			{
-				m_vGatheredVertices.push_back(m_vLastFrameVertices);
-				m_vGatheredRGBPoints.push_back(m_vLastFrameRGB);
-				m_bConfirmCaptured = true;
-				m_bCaptureFrame = false;
-			}
+			m_framesFileWriterReader.writeFrame(m_vLastFrameVertices, m_vLastFrameRGB);
+			m_bConfirmCaptured = true;
+			m_bCaptureFrame = false;
 		}
 	}
 
@@ -340,8 +329,6 @@ LRESULT CALLBACK LiveScanClient::DlgProc(HWND hWnd, UINT message, WPARAM wParam,
 				}
 				else
 				{
-					m_vGatheredVertices.clear();
-					m_vGatheredRGBPoints.clear();
 					try
 					{
 						char address[20];
@@ -532,33 +519,16 @@ void LiveScanClient::HandleSocket()
 		{
 			byteToSend = MSG_STORED_FRAME;
 			m_pClientSocket->SendBytes(&byteToSend, 1);
-			if (m_bCaptureToFile)
-			{
-				vector<Point3s> points;
-				vector<RGB> colors; 
-				bool res = m_framesFileWriterReader.readFrame(points, colors);
-				if (res == false)
-				{
-					int size = -1;
-					m_pClientSocket->SendBytes((char*)&size, 4);
-				} else
-					SendFrame(points, colors, m_vLastFrameBody);
-			}
-			else
-			{
-				if (m_vGatheredRGBPoints.size() > 0)
-				{
-					SendFrame(m_vGatheredVertices[0], m_vGatheredRGBPoints[0], m_vLastFrameBody);
 
-					m_vGatheredRGBPoints.erase(m_vGatheredRGBPoints.begin(), m_vGatheredRGBPoints.begin() + 1);
-					m_vGatheredVertices.erase(m_vGatheredVertices.begin(), m_vGatheredVertices.begin() + 1);
-				}
-				else
-				{
-					int size = -1;
-					m_pClientSocket->SendBytes((char*)&size, 4);
-				}
-			}
+			vector<Point3s> points;
+			vector<RGB> colors; 
+			bool res = m_framesFileWriterReader.readFrame(points, colors);
+			if (res == false)
+			{
+				int size = -1;
+				m_pClientSocket->SendBytes((char*)&size, 4);
+			} else
+				SendFrame(points, colors, m_vLastFrameBody);
 		}
 		//send last frame
 		else if (received[i] == MSG_REQUEST_LAST_FRAME)
@@ -591,8 +561,7 @@ void LiveScanClient::HandleSocket()
 		}
 		else if (received[i] == MSG_CLEAR_STORED_FRAMES)
 		{
-			m_vGatheredVertices.clear();
-			m_vGatheredRGBPoints.clear();
+			m_framesFileWriterReader.closeFileIfOpened();
 		}
 	}
 
@@ -643,7 +612,6 @@ void LiveScanClient::SendFrame(vector<Point3s> vertices, vector<RGB> RGB, vector
 		buffer[pos++] = RGB[i].rgbRed;
 		buffer[pos++] = RGB[i].rgbGreen;
 		buffer[pos++] = RGB[i].rgbBlue;
-
 
 		memcpy(buffer.data() + pos, ptr2, sizeof(short)* 3);
 		ptr2 += sizeof(short) * 3;

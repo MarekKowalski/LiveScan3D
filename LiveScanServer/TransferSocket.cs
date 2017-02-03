@@ -9,7 +9,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace KinectServer
 {
-    class TransferSocket
+    public class TransferSocket
     {
         TcpClient oSocket;
 

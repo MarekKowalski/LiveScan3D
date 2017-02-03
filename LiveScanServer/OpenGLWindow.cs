@@ -33,7 +33,7 @@ enum ECameraMode
 
 namespace KinectServer
 {
-    class OpenGLWindow : GameWindow
+    public class OpenGLWindow : GameWindow
     {
         int PointCount;
         int LineCount;

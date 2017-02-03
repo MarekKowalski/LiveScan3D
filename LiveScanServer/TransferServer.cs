@@ -11,7 +11,7 @@ using System.Net;
 
 namespace KinectServer
 {
-    class TransferServer
+    public class TransferServer
     {
         public List<float> lVertices = new List<float>();
         public List<byte> lColors = new List<byte>();
@@ -21,6 +21,11 @@ namespace KinectServer
 
         object oClientSocketLock = new object();
         bool bServerRunning = false;
+
+        ~TransferServer()
+        {
+            StopServer();
+        }
 
         public void StartServer()
         {

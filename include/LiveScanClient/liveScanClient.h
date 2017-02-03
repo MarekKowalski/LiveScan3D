@@ -55,7 +55,6 @@ private:
 	bool m_bShowDepth;
 	bool m_bFrameCompression;
 	int m_iCompressionLevel;
-	bool m_bCaptureToFile;			// false if capture frames to memory
 
 	FrameFileWriterReader m_framesFileWriterReader;
 
@@ -66,8 +65,6 @@ private:
 	std::vector<Point3s> m_vLastFrameVertices;
 	std::vector<RGB> m_vLastFrameRGB;
 	std::vector<Body> m_vLastFrameBody;
-	std::vector<std::vector<Point3s>> m_vGatheredVertices;
-	std::vector<std::vector<RGB>> m_vGatheredRGBPoints;
 
 	HWND m_hWnd;
     INT64 m_nLastCounter;

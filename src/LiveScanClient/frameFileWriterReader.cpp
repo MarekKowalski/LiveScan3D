@@ -46,7 +46,7 @@ void FrameFileWriterReader::openNewFileForWriting()
 	char filename[1024];
 	time_t t = time(0);
 	struct tm * now = localtime(&t);
-	sprintf(filename, "recording_%04d_%02d_%02d_%02d_%02d.bin", now->tm_year, now->tm_mon, now->tm_mday, now->tm_hour, now->tm_min, now->tm_sec);
+	sprintf(filename, "recording_%04d_%02d_%02d_%02d_%02d.bin", now->tm_year + 1900, now->tm_mon + 1, now->tm_mday, now->tm_hour, now->tm_min, now->tm_sec);
 	m_sFilename = filename; 
 	m_pFileHandle = fopen(filename, "wb");
 
