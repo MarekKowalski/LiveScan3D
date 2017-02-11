@@ -37,15 +37,16 @@
             this.btRemove = new System.Windows.Forms.Button();
             this.lFrameFilesListView = new System.Windows.Forms.ListView();
             this.chSaveFrames = new System.Windows.Forms.CheckBox();
+            this.btnSelectPly = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btSelect
             // 
             this.btSelect.Location = new System.Drawing.Point(12, 41);
             this.btSelect.Name = "btSelect";
-            this.btSelect.Size = new System.Drawing.Size(75, 23);
+            this.btSelect.Size = new System.Drawing.Size(89, 23);
             this.btSelect.TabIndex = 0;
-            this.btSelect.Text = "Select files";
+            this.btSelect.Text = "Select bin files";
             this.btSelect.UseVisualStyleBackColor = true;
             this.btSelect.Click += new System.EventHandler(this.btSelect_Click);
             // 
@@ -53,7 +54,7 @@
             // 
             this.btStart.Location = new System.Drawing.Point(12, 12);
             this.btStart.Name = "btStart";
-            this.btStart.Size = new System.Drawing.Size(75, 23);
+            this.btStart.Size = new System.Drawing.Size(89, 23);
             this.btStart.TabIndex = 1;
             this.btStart.Text = "Start player";
             this.btStart.UseVisualStyleBackColor = true;
@@ -61,9 +62,9 @@
             // 
             // btShow
             // 
-            this.btShow.Location = new System.Drawing.Point(12, 128);
+            this.btShow.Location = new System.Drawing.Point(12, 157);
             this.btShow.Name = "btShow";
-            this.btShow.Size = new System.Drawing.Size(75, 23);
+            this.btShow.Size = new System.Drawing.Size(89, 23);
             this.btShow.TabIndex = 2;
             this.btShow.Text = "Show live";
             this.btShow.UseVisualStyleBackColor = true;
@@ -79,9 +80,9 @@
             // 
             // btRewind
             // 
-            this.btRewind.Location = new System.Drawing.Point(12, 99);
+            this.btRewind.Location = new System.Drawing.Point(12, 128);
             this.btRewind.Name = "btRewind";
-            this.btRewind.Size = new System.Drawing.Size(75, 23);
+            this.btRewind.Size = new System.Drawing.Size(89, 23);
             this.btRewind.TabIndex = 5;
             this.btRewind.Text = "Rewind";
             this.btRewind.UseVisualStyleBackColor = true;
@@ -89,9 +90,9 @@
             // 
             // btRemove
             // 
-            this.btRemove.Location = new System.Drawing.Point(12, 70);
+            this.btRemove.Location = new System.Drawing.Point(12, 99);
             this.btRemove.Name = "btRemove";
-            this.btRemove.Size = new System.Drawing.Size(75, 23);
+            this.btRemove.Size = new System.Drawing.Size(89, 23);
             this.btRemove.TabIndex = 6;
             this.btRemove.Text = "Remove file";
             this.btRemove.UseVisualStyleBackColor = true;
@@ -100,10 +101,10 @@
             // lFrameFilesListView
             // 
             this.lFrameFilesListView.LabelEdit = true;
-            this.lFrameFilesListView.Location = new System.Drawing.Point(93, 12);
+            this.lFrameFilesListView.Location = new System.Drawing.Point(107, 12);
             this.lFrameFilesListView.MultiSelect = false;
             this.lFrameFilesListView.Name = "lFrameFilesListView";
-            this.lFrameFilesListView.Size = new System.Drawing.Size(422, 97);
+            this.lFrameFilesListView.Size = new System.Drawing.Size(408, 139);
             this.lFrameFilesListView.TabIndex = 7;
             this.lFrameFilesListView.UseCompatibleStateImageBehavior = false;
             this.lFrameFilesListView.View = System.Windows.Forms.View.Details;
@@ -113,18 +114,29 @@
             // chSaveFrames
             // 
             this.chSaveFrames.AutoSize = true;
-            this.chSaveFrames.Location = new System.Drawing.Point(435, 128);
+            this.chSaveFrames.Location = new System.Drawing.Point(432, 157);
             this.chSaveFrames.Name = "chSaveFrames";
             this.chSaveFrames.Size = new System.Drawing.Size(83, 17);
             this.chSaveFrames.TabIndex = 8;
             this.chSaveFrames.Text = "save frames";
             this.chSaveFrames.UseVisualStyleBackColor = true;
             // 
+            // btnSelectPly
+            // 
+            this.btnSelectPly.Location = new System.Drawing.Point(12, 70);
+            this.btnSelectPly.Name = "btnSelectPly";
+            this.btnSelectPly.Size = new System.Drawing.Size(89, 23);
+            this.btnSelectPly.TabIndex = 9;
+            this.btnSelectPly.Text = "Select ply files";
+            this.btnSelectPly.UseVisualStyleBackColor = true;
+            this.btnSelectPly.Click += new System.EventHandler(this.btnSelectPly_Click);
+            // 
             // PlayerWindowForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(527, 166);
+            this.ClientSize = new System.Drawing.Size(527, 190);
+            this.Controls.Add(this.btnSelectPly);
             this.Controls.Add(this.chSaveFrames);
             this.Controls.Add(this.lFrameFilesListView);
             this.Controls.Add(this.btRemove);
@@ -151,6 +163,7 @@
         private System.Windows.Forms.Button btRemove;
         private System.Windows.Forms.ListView lFrameFilesListView;
         private System.Windows.Forms.CheckBox chSaveFrames;
+        private System.Windows.Forms.Button btnSelectPly;
     }
 }
 

@@ -7,21 +7,21 @@ using System.IO;
 
 namespace LiveScanPlayer
 {
-    class FrameFileReader
+    class FrameFileReaderBin : IFrameFileReader
     {
         BinaryReader binaryReader;
         int currentFrameIdx = 0;
         string filename;
 
-        public FrameFileReader(string filename)
+        public FrameFileReaderBin(string filename)
         {
             this.filename = filename;
             binaryReader = new BinaryReader(File.Open(this.filename, FileMode.Open));
         }
 
-        ~FrameFileReader()
+        ~FrameFileReaderBin()
         {
-            Dispose();
+            binaryReader.Dispose();
         }
 
         public int frameIdx
@@ -34,11 +34,6 @@ namespace LiveScanPlayer
             {
                 JumpToFrame(value);
             }
-        }
-
-        public void Dispose()
-        {
-            binaryReader.Dispose();
         }
 
         public void ReadFrame(List<float> vertices, List<byte> colors)
@@ -99,6 +94,12 @@ namespace LiveScanPlayer
             }
         }
 
+        public void Rewind()
+        {
+            currentFrameIdx = 0;
+            binaryReader.BaseStream.Seek(0, SeekOrigin.Begin);
+        }
+
         public string ReadLine()
         {
             StringBuilder builder = new StringBuilder();
@@ -111,12 +112,6 @@ namespace LiveScanPlayer
             }
 
             return builder.ToString();
-        }
-
-        public void Rewind()
-        {
-            currentFrameIdx = 0;
-            binaryReader.BaseStream.Seek(0, SeekOrigin.Begin);
         }
     }
 }

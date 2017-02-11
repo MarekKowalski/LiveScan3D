@@ -15,7 +15,7 @@ namespace LiveScanPlayer
 {
     public partial class PlayerWindowForm : Form
     {
-        BindingList<FrameFileReader> lFrameFiles = new BindingList<FrameFileReader>();
+        BindingList<IFrameFileReader> lFrameFiles = new BindingList<IFrameFileReader>();
         bool bPlayerRunning = false;
 
         List<float> lAllVertices = new List<float>();
@@ -52,11 +52,30 @@ namespace LiveScanPlayer
             {
                 for (int i = 0; i < dialog.FileNames.Length; i++)
                 {                
-                    lFrameFiles.Add(new FrameFileReader(dialog.FileNames[i]));
+                    lFrameFiles.Add(new FrameFileReaderBin(dialog.FileNames[i]));
 
                     var item = new ListViewItem(new [] { "0", dialog.FileNames[i]});
                     lFrameFilesListView.Items.Add(item);
                 }
+            }
+        }
+
+        private void btnSelectPly_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.Multiselect = true;
+            dialog.ShowDialog();
+
+            if (dialog.FileNames.Length == 0)
+                return;
+
+            lock (lFrameFiles)
+            {
+                    lFrameFiles.Add(new FrameFileReaderPly(dialog.FileNames));
+                    
+                    
+                    var item = new ListViewItem(new[] { "0", Path.GetDirectoryName(dialog.FileNames[0]) });
+                    lFrameFilesListView.Items.Add(item);              
             }
         }
 
@@ -87,7 +106,6 @@ namespace LiveScanPlayer
             {
                 int idx = lFrameFilesListView.SelectedIndices[0];
                 lFrameFilesListView.Items.RemoveAt(idx);
-                lFrameFiles[idx].Dispose();
                 lFrameFiles.RemoveAt(idx);
             }
         }

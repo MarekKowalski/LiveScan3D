@@ -48,13 +48,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FrameFileReaderPly.cs" />
+    <Compile Include="IFrameFileReader.cs" />
     <Compile Include="PlayerWindowForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="PlayerWindowForm.Designer.cs">
       <DependentUpon>PlayerWindowForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="FrameFileReader.cs" />
+    <Compile Include="FrameFileReaderBin.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="PlayerWindowForm.resx">
