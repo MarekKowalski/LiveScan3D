@@ -4,10 +4,11 @@ LiveScan3D is a system designed for real time 3D reconstruction using multiple K
 The produced 3D reconstruction is in the form of a coloured point cloud, with points from all of the Kinects placed in the same coordinate system. Possible use scenarios of the system include:
   * capturing an object’s 3D structure from multiple viewpoints simultaneously,
   * capturing a “panoramic” 3D structure of a scene (extending the field of view of one sensor by using many),
+  * streaming the reconstructed point cloud to a remote location, 
   * increasing the density of a point cloud captured by a single sensor, by having multiple sensors capture the same scene.
 
 You will also find a short presentation of LiveScan3D in the video below (click to go to YouTube):
-[![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/9y_WglwpJtE/0.jpg)](http://www.youtube.com/watch?v=9y_WglwpJtE)
+[![YouTube link](http://img.youtube.com/vi/9y_WglwpJtE/0.jpg)](http://www.youtube.com/watch?v=9y_WglwpJtE)
 
 At the moment connecting multiple Kinect v2 devices to a single computer is difficult and only possible under Linux. Also, the number of the devices or capture speed might be low, because of the limitations of the PCI-E bus.
 
