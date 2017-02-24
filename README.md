@@ -15,7 +15,7 @@ At the moment connecting multiple Kinect v2 devices to a single computer is diff
 Because of those limitations, in our system each Kinect v2 sensor is connected to a separate computer. Each of those computers is connected to a server which governs all of the sensors. The server allows the user to perform calibration, filtering, synchronized frame capture, and to visualize the acquired point cloud live.
 
 ## How to use it ##
-To start working with our software you will need a Windows machine with the Kinect for Windows SDK 2.0, and at least a single Kinect v2 device. You can either build LiveScan3D from source which is easiest using Visual Studio, or you can download the binaries from: http://home.elka.pw.edu.pl/~mkowals6/.
+To start working with our software you will need a Windows machine with the Kinect for Windows SDK 2.0, and at least a single Kinect v2 device. You can either build LiveScan3D from source which is easiest using Visual Studio, or you can download the binary release.
 
 Both the binary and source distributions contain a manual (in the docs directory) which contains the steps necessary to start working with our software (it won't take more than a couple of minutes to set up).
 
