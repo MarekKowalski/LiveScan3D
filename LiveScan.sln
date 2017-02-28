@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LiveScanClient", "LiveScanClient\KinectClient.vcxproj", "{9B550BBA-EAFB-4D12-8B1C-8FDA39361F52}"
 EndProject
@@ -16,32 +16,35 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiveScanPlayer", "LiveScanP
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Win32 = Debug|Win32
-		Release ICP as exe|Win32 = Release ICP as exe|Win32
-		Release|Win32 = Release|Win32
+		Debug|x64 = Debug|x64
+		Release ICP as exe|x64 = Release ICP as exe|x64
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{9B550BBA-EAFB-4D12-8B1C-8FDA39361F52}.Debug|Win32.ActiveCfg = Debug|Win32
-		{9B550BBA-EAFB-4D12-8B1C-8FDA39361F52}.Debug|Win32.Build.0 = Debug|Win32
-		{9B550BBA-EAFB-4D12-8B1C-8FDA39361F52}.Release ICP as exe|Win32.ActiveCfg = Release|Win32
-		{9B550BBA-EAFB-4D12-8B1C-8FDA39361F52}.Release|Win32.ActiveCfg = Release|Win32
-		{9B550BBA-EAFB-4D12-8B1C-8FDA39361F52}.Release|Win32.Build.0 = Release|Win32
-		{78422B2C-0EF1-4A28-A40E-2A7C4A9204B1}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{78422B2C-0EF1-4A28-A40E-2A7C4A9204B1}.Debug|Win32.Build.0 = Debug|Any CPU
-		{78422B2C-0EF1-4A28-A40E-2A7C4A9204B1}.Release ICP as exe|Win32.ActiveCfg = Release|Any CPU
-		{78422B2C-0EF1-4A28-A40E-2A7C4A9204B1}.Release|Win32.ActiveCfg = Release|Any CPU
-		{78422B2C-0EF1-4A28-A40E-2A7C4A9204B1}.Release|Win32.Build.0 = Release|Any CPU
-		{973EE923-B423-4BCD-AA08-B03DA40CB51F}.Debug|Win32.ActiveCfg = Debug|Win32
-		{973EE923-B423-4BCD-AA08-B03DA40CB51F}.Debug|Win32.Build.0 = Debug|Win32
-		{973EE923-B423-4BCD-AA08-B03DA40CB51F}.Release ICP as exe|Win32.ActiveCfg = Release|Win32
-		{973EE923-B423-4BCD-AA08-B03DA40CB51F}.Release ICP as exe|Win32.Build.0 = Release|Win32
-		{973EE923-B423-4BCD-AA08-B03DA40CB51F}.Release|Win32.ActiveCfg = Release DLL|Win32
-		{973EE923-B423-4BCD-AA08-B03DA40CB51F}.Release|Win32.Build.0 = Release DLL|Win32
-		{E52AB19C-F67D-4932-90BD-CC549C1FEC8B}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{E52AB19C-F67D-4932-90BD-CC549C1FEC8B}.Debug|Win32.Build.0 = Debug|Any CPU
-		{E52AB19C-F67D-4932-90BD-CC549C1FEC8B}.Release ICP as exe|Win32.ActiveCfg = Release|Any CPU
-		{E52AB19C-F67D-4932-90BD-CC549C1FEC8B}.Release|Win32.ActiveCfg = Release|Any CPU
-		{E52AB19C-F67D-4932-90BD-CC549C1FEC8B}.Release|Win32.Build.0 = Release|Any CPU
+		{9B550BBA-EAFB-4D12-8B1C-8FDA39361F52}.Debug|x64.ActiveCfg = Debug|x64
+		{9B550BBA-EAFB-4D12-8B1C-8FDA39361F52}.Debug|x64.Build.0 = Debug|x64
+		{9B550BBA-EAFB-4D12-8B1C-8FDA39361F52}.Release ICP as exe|x64.ActiveCfg = Release|x64
+		{9B550BBA-EAFB-4D12-8B1C-8FDA39361F52}.Release ICP as exe|x64.Build.0 = Release|x64
+		{9B550BBA-EAFB-4D12-8B1C-8FDA39361F52}.Release|x64.ActiveCfg = Release|x64
+		{9B550BBA-EAFB-4D12-8B1C-8FDA39361F52}.Release|x64.Build.0 = Release|x64
+		{78422B2C-0EF1-4A28-A40E-2A7C4A9204B1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{78422B2C-0EF1-4A28-A40E-2A7C4A9204B1}.Debug|x64.Build.0 = Debug|Any CPU
+		{78422B2C-0EF1-4A28-A40E-2A7C4A9204B1}.Release ICP as exe|x64.ActiveCfg = Release|Any CPU
+		{78422B2C-0EF1-4A28-A40E-2A7C4A9204B1}.Release ICP as exe|x64.Build.0 = Release|Any CPU
+		{78422B2C-0EF1-4A28-A40E-2A7C4A9204B1}.Release|x64.ActiveCfg = Release|Any CPU
+		{78422B2C-0EF1-4A28-A40E-2A7C4A9204B1}.Release|x64.Build.0 = Release|Any CPU
+		{973EE923-B423-4BCD-AA08-B03DA40CB51F}.Debug|x64.ActiveCfg = Debug|x64
+		{973EE923-B423-4BCD-AA08-B03DA40CB51F}.Debug|x64.Build.0 = Debug|x64
+		{973EE923-B423-4BCD-AA08-B03DA40CB51F}.Release ICP as exe|x64.ActiveCfg = Release|x64
+		{973EE923-B423-4BCD-AA08-B03DA40CB51F}.Release ICP as exe|x64.Build.0 = Release|x64
+		{973EE923-B423-4BCD-AA08-B03DA40CB51F}.Release|x64.ActiveCfg = Release DLL|x64
+		{973EE923-B423-4BCD-AA08-B03DA40CB51F}.Release|x64.Build.0 = Release DLL|x64
+		{E52AB19C-F67D-4932-90BD-CC549C1FEC8B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E52AB19C-F67D-4932-90BD-CC549C1FEC8B}.Debug|x64.Build.0 = Debug|Any CPU
+		{E52AB19C-F67D-4932-90BD-CC549C1FEC8B}.Release ICP as exe|x64.ActiveCfg = Release|Any CPU
+		{E52AB19C-F67D-4932-90BD-CC549C1FEC8B}.Release ICP as exe|x64.Build.0 = Release|Any CPU
+		{E52AB19C-F67D-4932-90BD-CC549C1FEC8B}.Release|x64.ActiveCfg = Release|Any CPU
+		{E52AB19C-F67D-4932-90BD-CC549C1FEC8B}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

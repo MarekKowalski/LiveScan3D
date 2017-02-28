@@ -40,17 +40,20 @@
 //
 //M*/
 
-#ifndef __OPENCV_STITCHING_WARPERS_INL_HPP__
-#define __OPENCV_STITCHING_WARPERS_INL_HPP__
+#ifndef OPENCV_STITCHING_WARPERS_INL_HPP
+#define OPENCV_STITCHING_WARPERS_INL_HPP
 
-#include "opencv2/core/core.hpp"
+#include "opencv2/core.hpp"
 #include "warpers.hpp" // Make your IDE see declarations
+#include <limits>
+
+//! @cond IGNORED
 
 namespace cv {
 namespace detail {
 
 template <class P>
-Point2f RotationWarperBase<P>::warpPoint(const Point2f &pt, const Mat &K, const Mat &R)
+Point2f RotationWarperBase<P>::warpPoint(const Point2f &pt, InputArray K, InputArray R)
 {
     projector_.setCameraParams(K, R);
     Point2f uv;
@@ -60,15 +63,17 @@ Point2f RotationWarperBase<P>::warpPoint(const Point2f &pt, const Mat &K, const 
 
 
 template <class P>
-Rect RotationWarperBase<P>::buildMaps(Size src_size, const Mat &K, const Mat &R, Mat &xmap, Mat &ymap)
+Rect RotationWarperBase<P>::buildMaps(Size src_size, InputArray K, InputArray R, OutputArray _xmap, OutputArray _ymap)
 {
     projector_.setCameraParams(K, R);
 
     Point dst_tl, dst_br;
     detectResultRoi(src_size, dst_tl, dst_br);
 
-    xmap.create(dst_br.y - dst_tl.y + 1, dst_br.x - dst_tl.x + 1, CV_32F);
-    ymap.create(dst_br.y - dst_tl.y + 1, dst_br.x - dst_tl.x + 1, CV_32F);
+    _xmap.create(dst_br.y - dst_tl.y + 1, dst_br.x - dst_tl.x + 1, CV_32F);
+    _ymap.create(dst_br.y - dst_tl.y + 1, dst_br.x - dst_tl.x + 1, CV_32F);
+
+    Mat xmap = _xmap.getMat(), ymap = _ymap.getMat();
 
     float x, y;
     for (int v = dst_tl.y; v <= dst_br.y; ++v)
@@ -86,10 +91,10 @@ Rect RotationWarperBase<P>::buildMaps(Size src_size, const Mat &K, const Mat &R,
 
 
 template <class P>
-Point RotationWarperBase<P>::warp(const Mat &src, const Mat &K, const Mat &R, int interp_mode, int border_mode,
-                                  Mat &dst)
+Point RotationWarperBase<P>::warp(InputArray src, InputArray K, InputArray R, int interp_mode, int border_mode,
+                                  OutputArray dst)
 {
-    Mat xmap, ymap;
+    UMat xmap, ymap;
     Rect dst_roi = buildMaps(src.size(), K, R, xmap, ymap);
 
     dst.create(dst_roi.height + 1, dst_roi.width + 1, src.type());
@@ -100,14 +105,16 @@ Point RotationWarperBase<P>::warp(const Mat &src, const Mat &K, const Mat &R, in
 
 
 template <class P>
-void RotationWarperBase<P>::warpBackward(const Mat &src, const Mat &K, const Mat &R, int interp_mode, int border_mode,
-                                         Size dst_size, Mat &dst)
+void RotationWarperBase<P>::warpBackward(InputArray src, InputArray K, InputArray R, int interp_mode, int border_mode,
+                                         Size dst_size, OutputArray dst)
 {
     projector_.setCameraParams(K, R);
 
     Point src_tl, src_br;
     detectResultRoi(dst_size, src_tl, src_br);
-    CV_Assert(src_br.x - src_tl.x + 1 == src.cols && src_br.y - src_tl.y + 1 == src.rows);
+
+    Size size = src.size();
+    CV_Assert(src_br.x - src_tl.x + 1 == size.width && src_br.y - src_tl.y + 1 == size.height);
 
     Mat xmap(dst_size, CV_32F);
     Mat ymap(dst_size, CV_32F);
@@ -129,7 +136,7 @@ void RotationWarperBase<P>::warpBackward(const Mat &src, const Mat &K, const Mat
 
 
 template <class P>
-Rect RotationWarperBase<P>::warpRoi(Size src_size, const Mat &K, const Mat &R)
+Rect RotationWarperBase<P>::warpRoi(Size src_size, InputArray K, InputArray R)
 {
     projector_.setCameraParams(K, R);
 
@@ -143,10 +150,10 @@ Rect RotationWarperBase<P>::warpRoi(Size src_size, const Mat &K, const Mat &R)
 template <class P>
 void RotationWarperBase<P>::detectResultRoi(Size src_size, Point &dst_tl, Point &dst_br)
 {
-    float tl_uf = std::numeric_limits<float>::max();
-    float tl_vf = std::numeric_limits<float>::max();
-    float br_uf = -std::numeric_limits<float>::max();
-    float br_vf = -std::numeric_limits<float>::max();
+    float tl_uf = (std::numeric_limits<float>::max)();
+    float tl_vf = (std::numeric_limits<float>::max)();
+    float br_uf = -(std::numeric_limits<float>::max)();
+    float br_vf = -(std::numeric_limits<float>::max)();
 
     float u, v;
     for (int y = 0; y < src_size.height; ++y)
@@ -154,8 +161,8 @@ void RotationWarperBase<P>::detectResultRoi(Size src_size, Point &dst_tl, Point 
         for (int x = 0; x < src_size.width; ++x)
         {
             projector_.mapForward(static_cast<float>(x), static_cast<float>(y), u, v);
-            tl_uf = std::min(tl_uf, u); tl_vf = std::min(tl_vf, v);
-            br_uf = std::max(br_uf, u); br_vf = std::max(br_vf, v);
+            tl_uf = (std::min)(tl_uf, u); tl_vf = (std::min)(tl_vf, v);
+            br_uf = (std::max)(br_uf, u); br_vf = (std::max)(br_vf, v);
         }
     }
 
@@ -169,31 +176,31 @@ void RotationWarperBase<P>::detectResultRoi(Size src_size, Point &dst_tl, Point 
 template <class P>
 void RotationWarperBase<P>::detectResultRoiByBorder(Size src_size, Point &dst_tl, Point &dst_br)
 {
-    float tl_uf = std::numeric_limits<float>::max();
-    float tl_vf = std::numeric_limits<float>::max();
-    float br_uf = -std::numeric_limits<float>::max();
-    float br_vf = -std::numeric_limits<float>::max();
+    float tl_uf = (std::numeric_limits<float>::max)();
+    float tl_vf = (std::numeric_limits<float>::max)();
+    float br_uf = -(std::numeric_limits<float>::max)();
+    float br_vf = -(std::numeric_limits<float>::max)();
 
     float u, v;
     for (float x = 0; x < src_size.width; ++x)
     {
         projector_.mapForward(static_cast<float>(x), 0, u, v);
-        tl_uf = std::min(tl_uf, u); tl_vf = std::min(tl_vf, v);
-        br_uf = std::max(br_uf, u); br_vf = std::max(br_vf, v);
+        tl_uf = (std::min)(tl_uf, u); tl_vf = (std::min)(tl_vf, v);
+        br_uf = (std::max)(br_uf, u); br_vf = (std::max)(br_vf, v);
 
         projector_.mapForward(static_cast<float>(x), static_cast<float>(src_size.height - 1), u, v);
-        tl_uf = std::min(tl_uf, u); tl_vf = std::min(tl_vf, v);
-        br_uf = std::max(br_uf, u); br_vf = std::max(br_vf, v);
+        tl_uf = (std::min)(tl_uf, u); tl_vf = (std::min)(tl_vf, v);
+        br_uf = (std::max)(br_uf, u); br_vf = (std::max)(br_vf, v);
     }
     for (int y = 0; y < src_size.height; ++y)
     {
         projector_.mapForward(0, static_cast<float>(y), u, v);
-        tl_uf = std::min(tl_uf, u); tl_vf = std::min(tl_vf, v);
-        br_uf = std::max(br_uf, u); br_vf = std::max(br_vf, v);
+        tl_uf = (std::min)(tl_uf, u); tl_vf = (std::min)(tl_vf, v);
+        br_uf = (std::max)(br_uf, u); br_vf = (std::max)(br_vf, v);
 
         projector_.mapForward(static_cast<float>(src_size.width - 1), static_cast<float>(y), u, v);
-        tl_uf = std::min(tl_uf, u); tl_vf = std::min(tl_vf, v);
-        br_uf = std::max(br_uf, u); br_vf = std::max(br_vf, v);
+        tl_uf = (std::min)(tl_uf, u); tl_vf = (std::min)(tl_vf, v);
+        br_uf = (std::max)(br_uf, u); br_vf = (std::max)(br_vf, v);
     }
 
     dst_tl.x = static_cast<int>(tl_uf);
@@ -762,4 +769,6 @@ void PlanePortraitProjector::mapBackward(float u0, float v0, float &x, float &y)
 } // namespace detail
 } // namespace cv
 
-#endif // __OPENCV_STITCHING_WARPERS_INL_HPP__
+//! @endcond
+
+#endif // OPENCV_STITCHING_WARPERS_INL_HPP
