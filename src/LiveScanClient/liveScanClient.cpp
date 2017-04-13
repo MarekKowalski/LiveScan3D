@@ -509,6 +509,7 @@ void LiveScanClient::HandleSocket()
 			i += 1;
 
 			m_iCompressionLevel = *(int*)(received.c_str() + i);
+			i += sizeof(int);
 			if (m_iCompressionLevel > 0)
 				m_bFrameCompression = true;
 			else
