@@ -514,6 +514,9 @@ void LiveScanClient::HandleSocket()
 				m_bFrameCompression = true;
 			else
 				m_bFrameCompression = false;
+
+			//so that we do not lose the next character in the stream
+			i--;
 		}
 		//send stored frame
 		else if (received[i] == MSG_REQUEST_STORED_FRAME)

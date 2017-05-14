@@ -30,6 +30,8 @@ namespace KinectServer
         public KinectSettings oSettings;
         public KinectServer oServer;
 
+        bool bFormLoaded = false;
+
         public SettingsForm()
         {
             InitializeComponent();
@@ -69,11 +71,14 @@ namespace KinectServer
                 rBinaryPly.Checked = false;
                 rAsciiPly.Checked = true;
             }
+
+            bFormLoaded = true;
         }
 
         void UpdateClients()
         {
-            oServer.SendSettings();
+            if (bFormLoaded)
+                oServer.SendSettings();
         }
 
         void UpdateMarkerFields()
