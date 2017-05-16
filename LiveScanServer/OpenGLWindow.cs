@@ -325,49 +325,52 @@ namespace KinectServer
 
             lock (vertices)
             {
-                bool bShowSkeletons = settings.bShowSkeletons;
-
-                PointCount = vertices.Count / 3;
-                LineCount = 0;
-                if (bDrawMarkings)
+                lock (settings)
                 {
-                    //bounding box
-                    LineCount += 12;
-                    //markers
-                    LineCount += settings.lMarkerPoses.Count * 3;
-                    //cameras
-                    LineCount += cameraPoses.Count * 3;
-                    if (bShowSkeletons)
-                        LineCount += 24 * bodies.Count;
-                }
+                    bool bShowSkeletons = settings.bShowSkeletons;
 
-                VBO = new VertexC4ubV3f[PointCount + 2 * LineCount];
-
-                for (int i = 0; i < PointCount; i++)
-                {
-                    VBO[i].R = (byte)Math.Max(0, Math.Min(255, (colors[i * 3] + brightnessModifier)));
-                    VBO[i].G = (byte)Math.Max(0, Math.Min(255, (colors[i * 3 + 1] + brightnessModifier)));
-                    VBO[i].B = (byte)Math.Max(0, Math.Min(255, (colors[i * 3 + 2] + brightnessModifier)));
-                    VBO[i].A = 255;
-                    VBO[i].Position.X = vertices[i * 3];
-                    VBO[i].Position.Y = vertices[i * 3 + 1];
-                    VBO[i].Position.Z = vertices[i * 3 + 2];
-                }
-
-                if (bDrawMarkings)
-                {
-                    int iCurLineCount = 0;
-                    iCurLineCount += AddBoundingBox(PointCount + 2 * iCurLineCount);
-                    for (int i = 0; i < settings.lMarkerPoses.Count; i++)
+                    PointCount = vertices.Count / 3;
+                    LineCount = 0;
+                    if (bDrawMarkings)
                     {
-                        iCurLineCount += AddMarker(PointCount + 2 * iCurLineCount, settings.lMarkerPoses[i].pose);
+                        //bounding box
+                        LineCount += 12;
+                        //markers
+                        LineCount += settings.lMarkerPoses.Count * 3;
+                        //cameras
+                        LineCount += cameraPoses.Count * 3;
+                        if (bShowSkeletons)
+                            LineCount += 24 * bodies.Count;
                     }
-                    for (int i = 0; i < cameraPoses.Count; i++)
+
+                    VBO = new VertexC4ubV3f[PointCount + 2 * LineCount];
+
+                    for (int i = 0; i < PointCount; i++)
                     {
-                        iCurLineCount += AddCamera(PointCount + 2 * iCurLineCount, cameraPoses[i]);
+                        VBO[i].R = (byte)Math.Max(0, Math.Min(255, (colors[i * 3] + brightnessModifier)));
+                        VBO[i].G = (byte)Math.Max(0, Math.Min(255, (colors[i * 3 + 1] + brightnessModifier)));
+                        VBO[i].B = (byte)Math.Max(0, Math.Min(255, (colors[i * 3 + 2] + brightnessModifier)));
+                        VBO[i].A = 255;
+                        VBO[i].Position.X = vertices[i * 3];
+                        VBO[i].Position.Y = vertices[i * 3 + 1];
+                        VBO[i].Position.Z = vertices[i * 3 + 2];
                     }
-                    if (bShowSkeletons)
-                        iCurLineCount += AddBodies(PointCount + 2 * iCurLineCount);
+
+                    if (bDrawMarkings)
+                    {
+                        int iCurLineCount = 0;
+                        iCurLineCount += AddBoundingBox(PointCount + 2 * iCurLineCount);
+                        for (int i = 0; i < settings.lMarkerPoses.Count; i++)
+                        {
+                            iCurLineCount += AddMarker(PointCount + 2 * iCurLineCount, settings.lMarkerPoses[i].pose);
+                        }
+                        for (int i = 0; i < cameraPoses.Count; i++)
+                        {
+                            iCurLineCount += AddCamera(PointCount + 2 * iCurLineCount, cameraPoses[i]);
+                        }
+                        if (bShowSkeletons)
+                            iCurLineCount += AddBodies(PointCount + 2 * iCurLineCount);
+                    }
                 }
             }
         }
