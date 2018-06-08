@@ -206,6 +206,17 @@ namespace KinectServer
                     streamWriter.WriteLine(s);
                 }
             }
+
+            // Sequentially write the 3 vertex indices of the triangle face, for each triangle, 0-referenced in PLY files
+            for (int i = 0; i < nVertices; i++)
+            {
+                string baseIndex0 = (i * 3).ToString(CultureInfo.InvariantCulture);
+                string baseIndex1 = ((i * 3) + 1).ToString(CultureInfo.InvariantCulture);
+                string baseIndex2 = ((i * 3) + 2).ToString(CultureInfo.InvariantCulture);
+
+                string faceString = "3 " + baseIndex0 + " " + baseIndex1 + " " + baseIndex2;
+                streamWriter.WriteLine(faceString);
+            }
             streamWriter.Flush();
             binaryWriter.Flush();
             fileStream.Close();
