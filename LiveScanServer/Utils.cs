@@ -165,6 +165,7 @@ namespace KinectServer
         public static void saveToPly(string filename, List<Single> vertices, List<byte> colors, bool binary)
         {
             int nVertices = vertices.Count / 3;
+            int faces = nVertices / 3;
 
             FileStream fileStream = File.Open(filename, FileMode.Create);
 
@@ -175,10 +176,19 @@ namespace KinectServer
             if (binary)
                 streamWriter.WriteLine("ply\nformat binary_little_endian 1.0");
             else
-                streamWriter.WriteLine("ply\nformat ascii 1.0\n");
+                streamWriter.WriteLine("ply\nformat ascii 1.0");
             streamWriter.Write("element vertex " + nVertices.ToString() + "\n");
-            streamWriter.Write("property float x\nproperty float y\nproperty float z\nproperty uchar red\nproperty uchar green\nproperty uchar blue\nend_header\n");
-            streamWriter.Flush();
+            streamWriter.WriteLine("property float x");
+            streamWriter.WriteLine("property float y");
+            streamWriter.WriteLine("property float z");
+
+            streamWriter.WriteLine("property uchar red");
+            streamWriter.WriteLine("property uchar green");
+            streamWriter.WriteLine("property uchar blue");
+
+            streamWriter.WriteLine("element face " + faces.ToString(CultureInfo.InvariantCulture));
+            streamWriter.WriteLine("property list uchar int vertex_index");
+            streamWriter.WriteLine("end_header");
 
             //Vertex and color data are written here.
             if (binary)
@@ -208,7 +218,7 @@ namespace KinectServer
             }
 
             // Sequentially write the 3 vertex indices of the triangle face, for each triangle, 0-referenced in PLY files
-            for (int i = 0; i < nVertices; i++)
+            for (int i = 0; i < faces; i++)
             {
                 string baseIndex0 = (i * 3).ToString(CultureInfo.InvariantCulture);
                 string baseIndex1 = ((i * 3) + 1).ToString(CultureInfo.InvariantCulture);
