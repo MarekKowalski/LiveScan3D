@@ -33,13 +33,18 @@ namespace LiveScanPlayer
         {
             BinaryReader reader = new BinaryReader(new FileStream(filenames[currentFrameIdx], FileMode.Open));
 
+            bool alpha = false;
             string line = ReadLine(reader);
             while (!line.Contains("element vertex"))
                 line = ReadLine(reader);
             string[] lineElems = line.Split(' ');
             int nPoints = Int32.Parse(lineElems[2]);
             while (!line.Contains("end_header"))
+            {
+                if (line.Contains("alpha"))
+                    alpha = true;
                 line = ReadLine(reader);
+            }
 
             for (int i = 0; i < nPoints; i++)
             {
@@ -51,6 +56,9 @@ namespace LiveScanPlayer
                 {
                     colors.Add(reader.ReadByte());
                 }
+                //read additional alpha byte
+                if (alpha)
+                    reader.ReadByte();
             }
 
             reader.Dispose();
