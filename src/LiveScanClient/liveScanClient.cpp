@@ -78,8 +78,6 @@ LiveScanClient::LiveScanClient() :
 	m_vBounds.push_back(0.5);
 	m_vBounds.push_back(0.5);
 	m_vBounds.push_back(0.5);
-
-	calibration.LoadCalibration();
 }
 
 LiveScanClient::~LiveScanClient()
@@ -164,11 +162,14 @@ int LiveScanClient::Run(HINSTANCE hInstance, int nCmdShow)
     // Main message loop
     while (WM_QUIT != msg.message)
     {
-		//HandleSocket();
 		UpdateFrame();
 
         while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
         {
+			if (WM_QUIT == msg.message)
+			{
+				break;
+			}
             // If a dialog message will be taken care of by the dialog proc
             if (hWndApp && IsDialogMessageW(hWndApp, &msg))
             {
@@ -223,6 +224,7 @@ void LiveScanClient::UpdateFrame()
 
 		if (res)
 		{
+			calibration.SaveCalibration(pCapture->serialNumber);
 			m_bConfirmCalibrated = true;
 			m_bCalibrate = false;
 		}
@@ -277,6 +279,7 @@ LRESULT CALLBACK LiveScanClient::DlgProc(HWND hWnd, UINT message, WPARAM wParam,
 			bool res = pCapture->Initialize();
 			if (res)
 			{
+				calibration.LoadCalibration(pCapture->serialNumber);
 				m_pDepthRGBX = new RGB[pCapture->nColorFrameWidth * pCapture->nColorFrameHeight];
 				m_pDepthInColorSpace = new UINT16[pCapture->nColorFrameWidth * pCapture->nColorFrameHeight];
 

@@ -19,18 +19,18 @@ AzureKinectCapture::~AzureKinectCapture()
 
 bool AzureKinectCapture::Initialize()
 {
-	return Initialize(K4A_DEVICE_DEFAULT);
-}
-
-bool AzureKinectCapture::Initialize(int deviceIdx)
-{
 	uint32_t count = k4a_device_get_installed_count();
+	int deviceIdx = 0;
 
 	kinectSensor = NULL;
-	if (K4A_FAILED(k4a_device_open(deviceIdx, &kinectSensor)))
+	while (K4A_FAILED(k4a_device_open(deviceIdx, &kinectSensor)))
 	{
-		bInitialized = false;
-		return bInitialized;
+		deviceIdx++;
+		if (deviceIdx >= count)
+		{
+			bInitialized = false;
+			return bInitialized;
+		}
 	}
 
 	k4a_device_configuration_t config = K4A_DEVICE_CONFIG_INIT_DISABLE_ALL;
@@ -63,6 +63,11 @@ bool AzureKinectCapture::Initialize(int deviceIdx)
 			break;
 		}
 	} while (!bTemp);
+
+	size_t serialNoSize;
+	k4a_device_get_serialnum(kinectSensor, NULL, &serialNoSize);
+	serialNumber = std::string(serialNoSize, '\0');
+	k4a_device_get_serialnum(kinectSensor, (char*)serialNumber.c_str(), &serialNoSize);
 
 
 	return bInitialized;

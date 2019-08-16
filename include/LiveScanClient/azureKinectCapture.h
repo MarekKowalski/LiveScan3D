@@ -12,7 +12,6 @@ public:
 	~AzureKinectCapture();
 
 	bool Initialize();
-	bool Initialize(int deviceIdx);
 	bool AcquireFrame();
 	void MapDepthFrameToCameraSpace(Point3f *pCameraSpacePoints);
 	void MapColorFrameToCameraSpace(Point3f *pCameraSpacePoints);

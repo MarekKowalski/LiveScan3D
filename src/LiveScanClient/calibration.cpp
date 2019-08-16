@@ -124,15 +124,13 @@ bool Calibration::Calibrate(RGB *pBuffer, Point3f *pCameraCoordinates, int cColo
 	marker3DSamples.clear();
 	nSampleCounter = 0;
 
-	SaveCalibration();
-
 	return true;
 }
 
-bool Calibration::LoadCalibration()
+bool Calibration::LoadCalibration(const string &serialNumber)
 {
 	ifstream file;
-	file.open("calibration.txt");
+	file.open("calibration_" + serialNumber + ".txt");
 	if (!file.is_open())
 		return false;
 
@@ -149,10 +147,10 @@ bool Calibration::LoadCalibration()
 	return true;
 }
 
-void Calibration::SaveCalibration()
+void Calibration::SaveCalibration(const string &serialNumber)
 {
 	ofstream file;
-	file.open("calibration.txt");
+	file.open("calibration_" + serialNumber + ".txt");
 	for (int i = 0; i < 3; i++)
 		file << worldT[i] << " ";
 	file << endl;

@@ -56,4 +56,6 @@ public:
 	BYTE *pBodyIndex;
 	RGB *pColorRGBX;
 	std::vector<Body> vBodies;
+
+	std::string serialNumber;
 };
