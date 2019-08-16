@@ -12,9 +12,9 @@ public:
     FrameFileWriterReader();
 	void openNewFileForWriting();
 	void openCurrentFileForReading();
-	
+
 	// leave filename blank if you want the filename to be generated from the date
-	void setCurrentFilename(std::string filename = ""); 
+	void setCurrentFilename(std::string filename = "");
 
 	void writeFrame(std::vector<Point3s> points, std::vector<RGB> colors);
 	bool readFrame(std::vector<Point3s> &outPoints, std::vector<RGB> &outColors);
@@ -32,7 +32,7 @@ private:
 	int getRecordingTimeMilliseconds();
 
 	FILE *m_pFileHandle = nullptr;
-	bool m_bFileOpenedForWriting = false; 
+	bool m_bFileOpenedForWriting = false;
 	bool m_bFileOpenedForReading = false;
 
 	std::string m_sFilename = "";

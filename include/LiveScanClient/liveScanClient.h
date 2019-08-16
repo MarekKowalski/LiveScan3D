@@ -19,7 +19,7 @@
 #include "SocketCS.h"
 #include "calibration.h"
 #include "utils.h"
-#include "KinectCapture.h"
+#include "azureKinectCapture.h"
 #include "frameFileWriterReader.h"
 #include <thread>
 #include <mutex>
@@ -70,11 +70,11 @@ private:
     INT64 m_nLastCounter;
     double m_fFreq;
     INT64 m_nNextStatusTime;
-    DWORD m_nFramesSinceUpdate;	
+    DWORD m_nFramesSinceUpdate;
 
 	Point3f* m_pCameraSpaceCoordinates;
-	Point2f* m_pColorCoordinatesOfDepth;
-	Point2f* m_pDepthCoordinatesOfColor;
+	RGB* m_pColorInDepthSpace;
+	UINT16* m_pDepthInColorSpace;
 
     // Direct2D
     ImageRenderer* m_pDrawColor;
@@ -82,8 +82,8 @@ private:
 	RGB* m_pDepthRGBX;
 
 	void UpdateFrame();
-    void ProcessColor(RGB* pBuffer, int nWidth, int nHeight);
-	void ProcessDepth(const UINT16* pBuffer, int nHeight, int nWidth);
+    void ShowColor();
+	void ShowDepth();
 
     bool SetStatusMessage(_In_z_ WCHAR* szMessage, DWORD nShowTimeMsec, bool bForce);
 
@@ -91,7 +91,7 @@ private:
 	void SendFrame(vector<Point3s> vertices, vector<RGB> RGB, vector<Body> body);
 
 	void SocketThreadFunction();
-	void StoreFrame(Point3f *vertices, Point2f *mapping, RGB *color, vector<Body> &bodies, BYTE* bodyIndex);
+	void StoreFrame(Point3f *vertices, RGB *colorInDepth, vector<Body> &bodies, BYTE* bodyIndex);
 	void ShowFPS();
 	void ReadIPFromFile();
 	void WriteIPToFile();

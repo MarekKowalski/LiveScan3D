@@ -14,7 +14,6 @@
 //    }
 
 #include "calibration.h"
-#include "Kinect.h"
 #include "opencv\cv.h"
 
 #include <fstream>
@@ -92,7 +91,7 @@ bool Calibration::Calibrate(RGB *pBuffer, Point3f *pCameraCoordinates, int cColo
 			marker3D[i].Z += marker3DSamples[j][i].Z / (float)nRequiredSamples;
 		}
 	}
-	
+
 	Procrustes(marker, marker3D, worldT, worldR);
 
 	vector<vector<float>> Rcopy = worldR;
@@ -262,7 +261,7 @@ bool Calibration::GetMarkerCorners3D(vector<Point3f> &marker3D, MarkerInfo &mark
 		Point3f pointXMinYMax = pCameraCoordinates[minX + maxY * cColorWidth];
 		Point3f pointMax = pCameraCoordinates[maxX + maxY * cColorWidth];
 
-		if (pointMin.Z < 0 || pointXMaxYMin.Z < 0 || pointXMinYMax.Z < 0 || pointMax.Z < 0)
+		if (pointMin.Z <= 0 || pointXMaxYMin.Z <= 0 || pointXMinYMax.Z <= 0 || pointMax.Z <= 0)
 			return false;
 
 		marker3D[i].X = (1 - dx) * (1 - dy) * pointMin.X + dx * (1 - dy) * pointXMaxYMin.X + (1 - dx) * dy * pointXMinYMax.X + dx * dy * pointMax.X;

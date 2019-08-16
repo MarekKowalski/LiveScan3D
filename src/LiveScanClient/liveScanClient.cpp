@@ -23,7 +23,7 @@
 
 std::mutex m_mSocketThreadMutex;
 
-int APIENTRY wWinMain(    
+int APIENTRY wWinMain(
 	_In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance,
     _In_ LPWSTR lpCmdLine,
@@ -47,8 +47,8 @@ LiveScanClient::LiveScanClient() :
     m_pDrawColor(NULL),
 	m_pDepthRGBX(NULL),
 	m_pCameraSpaceCoordinates(NULL),
-	m_pColorCoordinatesOfDepth(NULL),
-	m_pDepthCoordinatesOfColor(NULL),
+	m_pColorInDepthSpace(NULL),
+	m_pDepthInColorSpace(NULL),
 	m_bCalibrate(false),
 	m_bFilter(false),
 	m_bStreamOnlyBodies(false),
@@ -64,7 +64,7 @@ LiveScanClient::LiveScanClient() :
 	m_nFilterNeighbors(10),
 	m_fFilterThreshold(0.01f)
 {
-	pCapture = new KinectCapture();
+	pCapture = new AzureKinectCapture();
 
     LARGE_INTEGER qpf = {0};
     if (QueryPerformanceFrequency(&qpf))
@@ -81,7 +81,7 @@ LiveScanClient::LiveScanClient() :
 
 	calibration.LoadCalibration();
 }
-  
+
 LiveScanClient::~LiveScanClient()
 {
     // clean up Direct2D renderer
@@ -109,16 +109,16 @@ LiveScanClient::~LiveScanClient()
 		m_pCameraSpaceCoordinates = NULL;
 	}
 
-	if (m_pColorCoordinatesOfDepth)
+	if (m_pColorInDepthSpace)
 	{
-		delete[] m_pColorCoordinatesOfDepth;
-		m_pColorCoordinatesOfDepth = NULL;
+		delete[] m_pColorInDepthSpace;
+		m_pColorInDepthSpace = NULL;
 	}
 
-	if (m_pDepthCoordinatesOfColor)
+	if (m_pDepthInColorSpace)
 	{
-		delete[] m_pDepthCoordinatesOfColor;
-		m_pDepthCoordinatesOfColor = NULL;
+		delete[] m_pDepthInColorSpace;
+		m_pDepthInColorSpace = NULL;
 	}
 
 	if (m_pClientSocket)
@@ -154,7 +154,7 @@ int LiveScanClient::Run(HINSTANCE hInstance, int nCmdShow)
         NULL,
         MAKEINTRESOURCE(IDD_APP),
         NULL,
-        (DLGPROC)LiveScanClient::MessageRouter, 
+        (DLGPROC)LiveScanClient::MessageRouter,
         reinterpret_cast<LPARAM>(this));
 
     // Show window
@@ -185,8 +185,6 @@ int LiveScanClient::Run(HINSTANCE hInstance, int nCmdShow)
     return static_cast<int>(msg.wParam);
 }
 
-
-
 void LiveScanClient::UpdateFrame()
 {
 	if (!pCapture->bInitialized)
@@ -200,10 +198,10 @@ void LiveScanClient::UpdateFrame()
 		return;
 
 	pCapture->MapDepthFrameToCameraSpace(m_pCameraSpaceCoordinates);
-	pCapture->MapDepthFrameToColorSpace(m_pColorCoordinatesOfDepth);
+	pCapture->MapColorFrameToDepthSpace(m_pColorInDepthSpace);
 	{
 		std::lock_guard<std::mutex> lock(m_mSocketThreadMutex);
-		StoreFrame(m_pCameraSpaceCoordinates, m_pColorCoordinatesOfDepth, pCapture->pColorRGBX, pCapture->vBodies, pCapture->pBodyIndex);
+		StoreFrame(m_pCameraSpaceCoordinates, m_pColorInDepthSpace, pCapture->vBodies, pCapture->pBodyIndex);
 
 		if (m_bCaptureFrame)
 		{
@@ -214,7 +212,7 @@ void LiveScanClient::UpdateFrame()
 	}
 
 	if (m_bCalibrate)
-	{		
+	{
 		std::lock_guard<std::mutex> lock(m_mSocketThreadMutex);
 		Point3f *pCameraCoordinates = new Point3f[pCapture->nColorFrameWidth * pCapture->nColorFrameHeight];
 		pCapture->MapColorFrameToCameraSpace(pCameraCoordinates);
@@ -231,9 +229,9 @@ void LiveScanClient::UpdateFrame()
 	}
 
 	if (!m_bShowDepth)
-		ProcessColor(pCapture->pColorRGBX, pCapture->nColorFrameWidth, pCapture->nColorFrameHeight);
+		ShowColor();
 	else
-		ProcessDepth(pCapture->pDepth, pCapture->nDepthFrameWidth, pCapture->nDepthFrameHeight);
+		ShowDepth();
 
 	ShowFPS();
 }
@@ -241,7 +239,7 @@ void LiveScanClient::UpdateFrame()
 LRESULT CALLBACK LiveScanClient::MessageRouter(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     LiveScanClient* pThis = NULL;
-    
+
     if (WM_INITDIALOG == uMsg)
     {
         pThis = reinterpret_cast<LiveScanClient*>(lParam);
@@ -280,10 +278,10 @@ LRESULT CALLBACK LiveScanClient::DlgProc(HWND hWnd, UINT message, WPARAM wParam,
 			if (res)
 			{
 				m_pDepthRGBX = new RGB[pCapture->nColorFrameWidth * pCapture->nColorFrameHeight];
+				m_pDepthInColorSpace = new UINT16[pCapture->nColorFrameWidth * pCapture->nColorFrameHeight];
 
 				m_pCameraSpaceCoordinates = new Point3f[pCapture->nDepthFrameWidth * pCapture->nDepthFrameHeight];
-				m_pColorCoordinatesOfDepth = new Point2f[pCapture->nDepthFrameWidth * pCapture->nDepthFrameHeight];
-				m_pDepthCoordinatesOfColor = new Point2f[pCapture->nColorFrameWidth * pCapture->nColorFrameHeight];
+				m_pColorInDepthSpace = new RGB[pCapture->nDepthFrameWidth * pCapture->nDepthFrameHeight];
 			}
 			else
 			{
@@ -305,15 +303,15 @@ LRESULT CALLBACK LiveScanClient::DlgProc(HWND hWnd, UINT message, WPARAM wParam,
         break;
 
         // If the titlebar X is clicked, destroy app
-		case WM_CLOSE:	
+		case WM_CLOSE:
 			WriteIPToFile();
-			DestroyWindow(hWnd);						 
+			DestroyWindow(hWnd);
 			break;
         case WM_DESTROY:
             // Quit the main message pump
             PostQuitMessage(0);
             break;
-			
+
         // Handle button press
         case WM_COMMAND:
 			if (IDC_BUTTON_CONNECT == LOWORD(wParam) && BN_CLICKED == HIWORD(wParam))
@@ -368,27 +366,17 @@ LRESULT CALLBACK LiveScanClient::DlgProc(HWND hWnd, UINT message, WPARAM wParam,
     return FALSE;
 }
 
-void LiveScanClient::ProcessDepth(const UINT16* pBuffer, int nWidth, int nHeight)
+void LiveScanClient::ShowDepth()
 {
 	// Make sure we've received valid data
-	if (m_pDepthRGBX && m_pDepthCoordinatesOfColor && pBuffer && (nWidth == pCapture->nDepthFrameWidth) && (nHeight == pCapture->nDepthFrameHeight))
+	if (m_pDepthRGBX && m_pDepthInColorSpace)
 	{
-		// end pixel is start + width*height - 1
-		const UINT16* pBufferEnd = pBuffer + (nWidth * nHeight);
-
-		pCapture->MapColorFrameToDepthSpace(m_pDepthCoordinatesOfColor);
+		pCapture->MapDepthFrameToColorSpace(m_pDepthInColorSpace);
 
 		for (int i = 0; i < pCapture->nColorFrameWidth * pCapture->nColorFrameHeight; i++)
 		{
-			Point2f depthPoint = m_pDepthCoordinatesOfColor[i];
-			BYTE intensity = 0;
-			
-			if (depthPoint.X >= 0 && depthPoint.Y >= 0)
-			{
-				int depthIdx = (int)(depthPoint.X + depthPoint.Y * pCapture->nDepthFrameWidth);
-				USHORT depth = pBuffer[depthIdx];
-				intensity = static_cast<BYTE>(depth % 256);
-			}
+			USHORT depth = m_pDepthInColorSpace[i];
+			BYTE intensity = static_cast<BYTE>(depth % 256);
 
 			m_pDepthRGBX[i].rgbRed = intensity;
 			m_pDepthRGBX[i].rgbGreen = intensity;
@@ -400,13 +388,13 @@ void LiveScanClient::ProcessDepth(const UINT16* pBuffer, int nWidth, int nHeight
 	}
 }
 
-void LiveScanClient::ProcessColor(RGB* pBuffer, int nWidth, int nHeight) 
+void LiveScanClient::ShowColor()
 {
     // Make sure we've received valid data
-	if (pBuffer && (nWidth == pCapture->nColorFrameWidth) && (nHeight == pCapture->nColorFrameHeight))
+	if (pCapture->pColorRGBX)
     {
         // Draw the data with Direct2D
-		m_pDrawColor->Draw(reinterpret_cast<BYTE*>(pBuffer), pCapture->nColorFrameWidth * pCapture->nColorFrameHeight * sizeof(RGB), pCapture->vBodies);
+		m_pDrawColor->Draw(reinterpret_cast<BYTE*>(pCapture->pColorRGBX), pCapture->nColorFrameWidth * pCapture->nColorFrameHeight * sizeof(RGB), pCapture->vBodies);
     }
 }
 
@@ -467,7 +455,7 @@ void LiveScanClient::HandleSocket()
 				bounds[j] = *(float*)(received.c_str() + i);
 				i += sizeof(float);
 			}
-				
+
 			m_bFilter = (received[i]!=0);
 			i++;
 
@@ -525,7 +513,7 @@ void LiveScanClient::HandleSocket()
 			m_pClientSocket->SendBytes(&byteToSend, 1);
 
 			vector<Point3s> points;
-			vector<RGB> colors; 
+			vector<RGB> colors;
 			bool res = m_framesFileWriterReader.readFrame(points, colors);
 			if (res == false)
 			{
@@ -621,7 +609,7 @@ void LiveScanClient::SendFrame(vector<Point3s> vertices, vector<RGB> RGB, vector
 		ptr2 += sizeof(short) * 3;
 		pos += sizeof(short) * 3;
 	}
-	
+
 	int nBodies = body.size();
 	size += sizeof(nBodies);
 	for (int i = 0; i < nBodies; i++)
@@ -633,7 +621,7 @@ void LiveScanClient::SendFrame(vector<Point3s> vertices, vector<RGB> RGB, vector
 		size += nJoints * 2 * sizeof(float);
 	}
 	buffer.resize(size);
-	
+
 	memcpy(buffer.data() + pos, &nBodies, sizeof(nBodies));
 	pos += sizeof(nBodies);
 
@@ -648,24 +636,24 @@ void LiveScanClient::SendFrame(vector<Point3s> vertices, vector<RGB> RGB, vector
 
 		for (int j = 0; j < nJoints; j++)
 		{
-			//Joint
-			memcpy(buffer.data() + pos, &body[i].vJoints[j].JointType, sizeof(JointType));
-			pos += sizeof(JointType);
-			memcpy(buffer.data() + pos, &body[i].vJoints[j].TrackingState, sizeof(TrackingState));
-			pos += sizeof(TrackingState);
-			//Joint position
-			memcpy(buffer.data() + pos, &body[i].vJoints[j].Position.X, sizeof(float));
-			pos += sizeof(float);
-			memcpy(buffer.data() + pos, &body[i].vJoints[j].Position.Y, sizeof(float));
-			pos += sizeof(float);
-			memcpy(buffer.data() + pos, &body[i].vJoints[j].Position.Z, sizeof(float));
-			pos += sizeof(float);
+			////Joint
+			//memcpy(buffer.data() + pos, &body[i].vJoints[j].JointType, sizeof(JointType));
+			//pos += sizeof(JointType);
+			//memcpy(buffer.data() + pos, &body[i].vJoints[j].TrackingState, sizeof(TrackingState));
+			//pos += sizeof(TrackingState);
+			////Joint position
+			//memcpy(buffer.data() + pos, &body[i].vJoints[j].Position.X, sizeof(float));
+			//pos += sizeof(float);
+			//memcpy(buffer.data() + pos, &body[i].vJoints[j].Position.Y, sizeof(float));
+			//pos += sizeof(float);
+			//memcpy(buffer.data() + pos, &body[i].vJoints[j].Position.Z, sizeof(float));
+			//pos += sizeof(float);
 
-			//JointInColorSpace
-			memcpy(buffer.data() + pos, &body[i].vJointsInColorSpace[j].X, sizeof(float));
-			pos += sizeof(float);
-			memcpy(buffer.data() + pos, &body[i].vJointsInColorSpace[j].Y, sizeof(float));
-			pos += sizeof(float);
+			////JointInColorSpace
+			//memcpy(buffer.data() + pos, &body[i].vJointsInColorSpace[j].X, sizeof(float));
+			//pos += sizeof(float);
+			//memcpy(buffer.data() + pos, &body[i].vJointsInColorSpace[j].Y, sizeof(float));
+			//pos += sizeof(float);
 		}
 	}
 
@@ -673,12 +661,12 @@ void LiveScanClient::SendFrame(vector<Point3s> vertices, vector<RGB> RGB, vector
 
 	if (m_bFrameCompression)
 	{
-		// *2, because according to zstd documentation, increasing the size of the output buffer above a 
+		// *2, because according to zstd documentation, increasing the size of the output buffer above a
 		// bound should speed up the compression.
-		int cBuffSize = ZSTD_compressBound(size) * 2;	
+		int cBuffSize = ZSTD_compressBound(size) * 2;
 		vector<char> compressedBuffer(cBuffSize);
 		int cSize = ZSTD_compress(compressedBuffer.data(), cBuffSize, buffer.data(), size, m_iCompressionLevel);
-		size = cSize; 
+		size = cSize;
 		buffer = compressedBuffer;
 	}
 	char header[8];
@@ -689,7 +677,7 @@ void LiveScanClient::SendFrame(vector<Point3s> vertices, vector<RGB> RGB, vector
 	m_pClientSocket->SendBytes(buffer.data(), size);
 }
 
-void LiveScanClient::StoreFrame(Point3f *vertices, Point2f *mapping, RGB *color, vector<Body> &bodies, BYTE* bodyIndex)
+void LiveScanClient::StoreFrame(Point3f *vertices, RGB *colorInDepth, vector<Body> &bodies, BYTE* bodyIndex)
 {
 	std::vector<Point3f> goodVertices;
 	std::vector<RGB> goodColorPoints;
@@ -701,10 +689,10 @@ void LiveScanClient::StoreFrame(Point3f *vertices, Point2f *mapping, RGB *color,
 		if (m_bStreamOnlyBodies && bodyIndex[vertexIndex] >= bodies.size())
 			continue;
 
-		if (vertices[vertexIndex].Z >= 0 && mapping[vertexIndex].Y >= 0 && mapping[vertexIndex].Y < pCapture->nColorFrameHeight)
+		if (vertices[vertexIndex].Z >= 0 && colorInDepth[vertexIndex].rgbReserved == 255)
 		{
 			Point3f temp = vertices[vertexIndex];
-			RGB tempColor = color[(int)mapping[vertexIndex].X + (int)mapping[vertexIndex].Y * pCapture->nColorFrameWidth];
+			RGB tempColor = colorInDepth[vertexIndex];
 			if (calibration.bCalibrated)
 			{
 				temp.X += calibration.worldT[0];
@@ -725,26 +713,26 @@ void LiveScanClient::StoreFrame(Point3f *vertices, Point2f *mapping, RGB *color,
 
 	vector<Body> tempBodies = bodies;
 
-	for (unsigned int i = 0; i < tempBodies.size(); i++)
-	{
-		for (unsigned int j = 0; j < tempBodies[i].vJoints.size(); j++)
-		{
-			if (calibration.bCalibrated)
-			{
-				tempBodies[i].vJoints[j].Position.X += calibration.worldT[0];
-				tempBodies[i].vJoints[j].Position.Y += calibration.worldT[1];
-				tempBodies[i].vJoints[j].Position.Z += calibration.worldT[2];
+	//for (unsigned int i = 0; i < tempBodies.size(); i++)
+	//{
+	//	for (unsigned int j = 0; j < tempBodies[i].vJoints.size(); j++)
+	//	{
+	//		if (calibration.bCalibrated)
+	//		{
+	//			tempBodies[i].vJoints[j].Position.X += calibration.worldT[0];
+	//			tempBodies[i].vJoints[j].Position.Y += calibration.worldT[1];
+	//			tempBodies[i].vJoints[j].Position.Z += calibration.worldT[2];
 
-				Point3f tempPoint(tempBodies[i].vJoints[j].Position.X, tempBodies[i].vJoints[j].Position.Y, tempBodies[i].vJoints[j].Position.Z);
+	//			Point3f tempPoint(tempBodies[i].vJoints[j].Position.X, tempBodies[i].vJoints[j].Position.Y, tempBodies[i].vJoints[j].Position.Z);
 
-				tempPoint = RotatePoint(tempPoint, calibration.worldR);
+	//			tempPoint = RotatePoint(tempPoint, calibration.worldR);
 
-				tempBodies[i].vJoints[j].Position.X = tempPoint.X;
-				tempBodies[i].vJoints[j].Position.Y = tempPoint.Y;
-				tempBodies[i].vJoints[j].Position.Z = tempPoint.Z;
-			}
-		}
-	}
+	//			tempBodies[i].vJoints[j].Position.X = tempPoint.X;
+	//			tempBodies[i].vJoints[j].Position.Y = tempPoint.Y;
+	//			tempBodies[i].vJoints[j].Position.Z = tempPoint.Z;
+	//		}
+	//	}
+	//}
 
 	if (m_bFilter)
 		filter(goodVertices, goodColorPoints, m_nFilterNeighbors, m_fFilterThreshold);

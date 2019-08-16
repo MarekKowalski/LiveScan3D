@@ -42,9 +42,6 @@
     <ClInclude Include="..\include\LiveScanClient\iMarker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\LiveScanClient\kinectCapture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\LiveScanClient\liveScanClient.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -55,6 +52,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\LiveScanClient\frameFileWriterReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\LiveScanClient\azureKinectCapture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -77,9 +77,6 @@
     <ClCompile Include="..\src\LiveScanClient\iMarker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\LiveScanClient\kinectCapture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\LiveScanClient\liveScanClient.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -92,6 +89,9 @@
     <ClCompile Include="..\src\LiveScanClient\frameFileWriterReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\LiveScanClient\azureKinectCapture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="app.ico">
@@ -102,5 +102,8 @@
     <ResourceCompile Include="LiveScanClient.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

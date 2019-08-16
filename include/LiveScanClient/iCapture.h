@@ -15,15 +15,19 @@
 #pragma once
 
 #include "utils.h"
-#include "Kinect.h"
+
+struct Joint
+{
+
+};
 
 struct Body
 {
 	Body()
 	{
 		bTracked = false;
-		vJoints.resize(JointType_Count);
-		vJointsInColorSpace.resize(JointType_Count);
+		vJoints.resize(5);
+		vJointsInColorSpace.resize(5);
 	}
 	bool bTracked;
 	std::vector<Joint> vJoints;
@@ -40,8 +44,8 @@ public:
 	virtual bool AcquireFrame() = 0;
 	virtual void MapDepthFrameToCameraSpace(Point3f *pCameraSpacePoints) = 0;
 	virtual void MapColorFrameToCameraSpace(Point3f *pCameraSpacePoints) = 0;
-	virtual void MapDepthFrameToColorSpace(Point2f *pColorSpacePoints) = 0;
-	virtual void MapColorFrameToDepthSpace(Point2f *pDepthSpacePoints) = 0;
+	virtual void MapDepthFrameToColorSpace(UINT16 *pColorSpacePoints) = 0;
+	virtual void MapColorFrameToDepthSpace(RGB *pDepthSpacePoints) = 0;
 
 	bool bInitialized;
 
