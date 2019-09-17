@@ -1,5 +1,5 @@
 # LiveScan3D #
-LiveScan3D is a system designed for real time 3D reconstruction using multiple Kinect v2 depth sensors simultaneously at real time speed.
+LiveScan3D is a system designed for real time 3D reconstruction using multiple Kinect v2 depth sensors simultaneously at real time speed. There is also a new, experimental, branch that works with Azure Kinect, link [here](https://github.com/MarekKowalski/LiveScan3D/tree/AzureKinect), updates about that branch will be posted [here](https://github.com/MarekKowalski/LiveScan3D/issues/39).
 
 The produced 3D reconstruction is in the form of a coloured point cloud, with points from all of the Kinects placed in the same coordinate system. Possible use scenarios of the system include:
   * capturing an object’s 3D structure from multiple viewpoints simultaneously,
