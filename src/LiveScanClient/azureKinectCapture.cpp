@@ -38,6 +38,7 @@ bool AzureKinectCapture::Initialize()
 	config.color_format = K4A_IMAGE_FORMAT_COLOR_BGRA32;
 	config.color_resolution = K4A_COLOR_RESOLUTION_1080P;
 	config.depth_mode = K4A_DEPTH_MODE_NFOV_UNBINNED;
+	config.synchronized_images_only = true;
 
 	// Start the camera with the given configuration
 	bInitialized = K4A_SUCCEEDED(k4a_device_start_cameras(kinectSensor, &config));
