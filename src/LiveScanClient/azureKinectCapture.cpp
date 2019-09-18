@@ -85,17 +85,21 @@ bool AzureKinectCapture::AcquireFrame()
 	k4a_wait_result_t captureResult = k4a_device_get_capture(kinectSensor, &capture, captureTimeoutMs);
 	if (captureResult != K4A_WAIT_RESULT_SUCCEEDED)
 	{
+		k4a_capture_release(capture);
 		return false;
 	}
 
 	k4a_image_release(colorImage);
 	k4a_image_release(depthImage);
 
+
 	colorImage = k4a_capture_get_color_image(capture);
 	depthImage = k4a_capture_get_depth_image(capture);
 	if (colorImage == NULL || depthImage == NULL)
+	{
+		k4a_capture_release(capture);
 		return false;
-
+	}
 
 	if (pColorRGBX == NULL)
 	{
