@@ -232,6 +232,19 @@ namespace KinectServer
             }
         }
 
+        public void SendTemporalSyncData()
+        {
+            lock (oClientSocketLock)
+            {                
+                lClientSockets[0].SendTemporalSyncStatus(true, false);
+
+                for (int i = 1; i < lClientSockets.Count; i++)
+                {
+                    lClientSockets[i].SendTemporalSyncStatus(false, true);
+                }
+            }
+        }
+
         public bool GetStoredFrame(List<List<byte>> lFramesRGB, List<List<Single>> lFramesVerts)
         {
             bool bNoMoreStoredFrames;
@@ -434,6 +447,11 @@ namespace KinectServer
                             {
                                 lClientSockets[i].ReceiveFrame();
                                 lClientSockets[i].bLatestFrameReceived = true;
+                            }
+
+                            else if (buffer[0] == 4)
+                            {
+                                lClientSockets[i].ReceiveTemporalSyncStatus();
                             }
 
                             buffer = lClientSockets[i].Receive(1);

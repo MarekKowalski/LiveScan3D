@@ -33,6 +33,8 @@ namespace KinectServer
         public bool bStoredFrameReceived = false;
         public bool bNoMoreStoredFrames = true;
         public bool bCalibrated = false;
+        public bool bIsMaster = false;
+        public bool bIsSubOrdinate = false;
         //The pose of the sensor in the scene (used by the OpenGLWindow to show the sensor)
         public AffineTransform oCameraPose = new AffineTransform();
         //The transform that maps the vertices in the sensor coordinate system to the world corrdinate system.
@@ -121,6 +123,23 @@ namespace KinectServer
             SendByte();
         }
 
+        public void SendTemporalSyncStatus(bool isMaster, bool isSubOrdinate)
+        {
+            if (isMaster)
+            {
+                byteToSend[0] = 7;
+                SendByte();
+                return;
+            }
+
+            if (isSubOrdinate)
+            {
+                byteToSend[0] = 8;
+                SendByte();
+                return;
+            }
+        }
+
         public void ReceiveCalibrationData()
         {
             bCalibrated = true;
@@ -143,6 +162,37 @@ namespace KinectServer
                 {
                     oCameraPose.t[i] += oWorldTransform.t[j] * oWorldTransform.R[i, j];
                 }
+            }
+
+            UpdateSocketState();
+        }
+
+        public void ReceiveTemporalSyncStatus()
+        {
+            int nToRead;
+            byte[] buffer = new byte[1024];
+
+            while (oSocket.Available == 0)
+            {
+                if (!SocketConnected())
+                    return;
+            }
+
+            oSocket.Receive(buffer, 4, SocketFlags.None);
+            nToRead = BitConverter.ToInt32(buffer, 0);
+
+            if (nToRead == -1)
+            {
+                bIsSubOrdinate = true;
+                bIsMaster = false;
+                return;
+            }
+
+            if(nToRead == 0)
+            {
+                bIsMaster = true;
+                bIsSubOrdinate = false;
+                return;
             }
 
             UpdateSocketState();
@@ -293,10 +343,19 @@ namespace KinectServer
 
         public void UpdateSocketState()
         {
-            if (bCalibrated)
-                sSocketState = oSocket.RemoteEndPoint.ToString() + " Calibrated = true";
-            else
-                sSocketState = oSocket.RemoteEndPoint.ToString() + " Calibrated = false";
+            string tempSyncStatus = "";
+
+            if (bIsMaster)
+            {
+                tempSyncStatus = "[Master]";
+            }
+
+            if (bIsSubOrdinate)
+            {
+                tempSyncStatus = "[Subordinate]";
+            }
+
+            sSocketState = oSocket.RemoteEndPoint.ToString() + " Calibrated = " + bCalibrated + " " + tempSyncStatus;
 
             if (eChanged != null)
                 eChanged();

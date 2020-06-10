@@ -42,6 +42,8 @@ namespace KinectServer
         public bool bMergeScansForSave = true;
         public bool bSaveAsBinaryPLY = true;
 
+        public bool bEnableSync = false;
+
         public KinectSettings()
         {
             aMinBounds[0] = -5f;

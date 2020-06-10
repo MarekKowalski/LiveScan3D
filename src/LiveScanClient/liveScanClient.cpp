@@ -444,6 +444,16 @@ void LiveScanClient::HandleSocket()
 		//calibrate
 		else if (received[i] == MSG_CALIBRATE)
 			m_bCalibrate = true;
+		//Set this client as master
+		else if (received[i] == MSG_SET_MASTER) {
+			m_bIsMaster = true;
+			m_bIsSubOrdinate = false;
+		}
+		//Set this client as subordinate
+		else if (received[i] == MSG_SET_SUBORDINATE) {
+			m_bIsMaster = false;
+			m_bIsSubOrdinate = true;
+		}			
 		//receive settings
 		//TODO: what if packet is split?
 		else if (received[i] == MSG_RECEIVE_SETTINGS)
@@ -565,6 +575,24 @@ void LiveScanClient::HandleSocket()
 		byteToSend = MSG_CONFIRM_CAPTURED;
 		m_pClientSocket->SendBytes(&byteToSend, 1);
 		m_bConfirmCaptured = false;
+	}
+
+	if (m_bConfirmMaster) 
+	{
+		int size = 2;
+		char *buffer = new char[size];
+		buffer[0] = MSG_CONFIRM_TEMP_SYNC_STATUS;
+		buffer[1] = 0;
+		m_pClientSocket->SendBytes(buffer, size);
+	}
+
+	if (m_bConfirmSubOrdinate) 
+	{
+		int size = 2;
+		char* buffer = new char[size];
+		buffer[0] = MSG_CONFIRM_TEMP_SYNC_STATUS;
+		buffer[1] = -1;
+		m_pClientSocket->SendBytes(buffer, size);
 	}
 
 	if (m_bConfirmCalibrated)

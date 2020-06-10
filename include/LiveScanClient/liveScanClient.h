@@ -43,6 +43,9 @@ private:
 	bool m_bFilter;
 	bool m_bStreamOnlyBodies;
 
+	bool m_bIsMaster;
+	bool m_bIsSubOrdinate;
+
 	ICapture *pCapture;
 
 	int m_nFilterNeighbors;
@@ -51,6 +54,8 @@ private:
 	bool m_bCaptureFrame;
 	bool m_bConnected;
 	bool m_bConfirmCaptured;
+	bool m_bConfirmMaster;
+	bool m_bConfirmSubOrdinate;
 	bool m_bConfirmCalibrated;
 	bool m_bShowDepth;
 	bool m_bFrameCompression;
