@@ -20,7 +20,6 @@ public:
 	void MapColorFrameToCameraSpace(Point3f *pCameraSpacePoints);
 	void MapDepthFrameToColorSpace(UINT16 *pDepthInColorSpace);
 	void MapColorFrameToDepthSpace(RGB *pColorInDepthSpace);
-	k4a_image_t Downscale_image_2x2_binning(const k4a_image_t color_image);
 
 private:
 	k4a_device_t kinectSensor = NULL;
@@ -37,7 +36,6 @@ private:
 	int color_image_downscaled_height;
 	k4a_transformation_t transformation = NULL;
 	k4a_transformation_t transformation_color_downscaled = NULL;
-	k4a_image_t opencv_to_k4a_image(const cv::Mat cImg);
 	cv::Mat color_to_opencv(const k4a_image_t im);
 	void UpdateDepthPointCloud();
 	void UpdateDepthPointCloudForColorFrame();
