@@ -45,16 +45,26 @@ typedef struct Point3f
 		this->X = 0;
 		this->Y = 0;
 		this->Z = 0;
+		this->Invalid = false;
+	}
+	Point3f(float X, float Y, float Z, bool invalid)
+	{
+		this->X = X;
+		this->Y = Y;
+		this->Z = Z;
+		this->Invalid = invalid;
 	}
 	Point3f(float X, float Y, float Z)
 	{
 		this->X = X;
 		this->Y = Y;
 		this->Z = Z;
+		this->Invalid = false;
 	}
 	float X;
 	float Y;
 	float Z;
+	bool Invalid = false;
 } Point3f;
 
 typedef struct Point3s
