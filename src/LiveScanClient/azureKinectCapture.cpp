@@ -56,10 +56,7 @@ bool AzureKinectCapture::Initialize(bool asMaster, bool asSubordinate, int syncO
 	{
 		config.wired_sync_mode = K4A_WIRED_SYNC_MODE_SUBORDINATE;
 		//Sets the offset on subordinate devices. Should be a multiple of 160, each subordinate having a different multiplier in ascending order.
-		//This is very important, as it avoids firing the Kinects Lasers at the same time.
-		
-		config.subordinate_delay_off_master_usec = 0;
-		
+		//This is very important, as it avoids firing the Kinects lasers at the same time.		
 		config.subordinate_delay_off_master_usec = 160 * syncOffsetMultiplier;
 	}
 

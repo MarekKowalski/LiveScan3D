@@ -234,7 +234,7 @@ namespace KinectServer
         }
 
         /// <summary>
-        /// Send temporal Sync Data to all client
+        /// Send temporal Sync Data to all clients
         /// </summary>
         public void SendTemporalSyncData()
         {

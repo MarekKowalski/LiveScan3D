@@ -220,18 +220,6 @@ namespace KinectServer
                 currentTempSyncState = eTempSyncConfig.STANDALONE;
             }
 
-            //MARKED FOR DELETION
-            //if(currentTempSyncState == eTempSyncConfig.SUBORDINATE && confirmSubStarted == 1)
-            //{
-                
-            //}
-
-            //else if(currentTempSyncState == eTempSyncConfig.SUBORDINATE && confirmSubStarted == 0)
-            //{
-            //    bSubStarted = false;
-            //    eSubInitialized?.Invoke();
-            //}
-
             UpdateSocketState();
 
         }
