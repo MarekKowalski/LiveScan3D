@@ -355,6 +355,14 @@ namespace KinectServer
             UpdateClients();
         }
 
-        
+        private void grSync_Enter(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lbSyncWarning_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

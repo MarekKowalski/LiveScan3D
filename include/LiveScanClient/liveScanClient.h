@@ -54,12 +54,15 @@ private:
 	bool m_bCaptureFrame;
 	bool m_bConnected;
 	bool m_bConfirmCaptured;
-	bool m_bConfirmMaster;
-	bool m_bConfirmSubOrdinate;
+	bool m_bConfirmTempSyncState;
+	bool m_bConfirmSubOrdinateStarted;
 	bool m_bConfirmCalibrated;
 	bool m_bShowDepth;
 	bool m_bFrameCompression;
 	int m_iCompressionLevel;
+
+	enum tempSyncConfig { MASTER, SUBORDINATE, STANDALONE };
+	tempSyncConfig currentTempSyncState;
 
 	FrameFileWriterReader m_framesFileWriterReader;
 
@@ -76,6 +79,7 @@ private:
     double m_fFreq;
     INT64 m_nNextStatusTime;
     DWORD m_nFramesSinceUpdate;
+	int frameRecordCounter;
 
 	Point3f* m_pCameraSpaceCoordinates;
 	RGB* m_pColorInDepthSpace;

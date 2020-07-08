@@ -28,13 +28,13 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.Label lbSyncWarning;
             this.lbMerge = new System.Windows.Forms.Label();
             this.chMerge = new System.Windows.Forms.CheckBox();
             this.lbICPIters = new System.Windows.Forms.Label();
             this.txtICPIters = new System.Windows.Forms.TextBox();
             this.grClient = new System.Windows.Forms.GroupBox();
             this.grSync = new System.Windows.Forms.GroupBox();
+            this.label1 = new System.Windows.Forms.Label();
             this.chSync = new System.Windows.Forms.CheckBox();
             this.grBody = new System.Windows.Forms.GroupBox();
             this.chSkeletons = new System.Windows.Forms.CheckBox();
@@ -82,7 +82,7 @@
             this.rAsciiPly = new System.Windows.Forms.RadioButton();
             this.txtRefinIters = new System.Windows.Forms.TextBox();
             this.lbOuterIters = new System.Windows.Forms.Label();
-            lbSyncWarning = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
             this.grClient.SuspendLayout();
             this.grSync.SuspendLayout();
             this.grBody.SuspendLayout();
@@ -145,24 +145,27 @@
             // 
             // grSync
             // 
-            this.grSync.Controls.Add(lbSyncWarning);
+            this.grSync.Controls.Add(this.label3);
+            this.grSync.Controls.Add(this.label1);
             this.grSync.Controls.Add(this.chSync);
             this.grSync.Location = new System.Drawing.Point(271, 211);
             this.grSync.Name = "grSync";
-            this.grSync.Size = new System.Drawing.Size(355, 66);
+            this.grSync.Size = new System.Drawing.Size(355, 80);
             this.grSync.TabIndex = 48;
             this.grSync.TabStop = false;
-            this.grSync.Text = "Temporal Sync (Azure Kinect Only)";
+            this.grSync.Text = "Temporal Sync";
+            this.grSync.Enter += new System.EventHandler(this.grSync_Enter);
             // 
-            // lbSyncWarning
+            // label1
             // 
-            lbSyncWarning.AutoSize = true;
-            lbSyncWarning.CausesValidation = false;
-            lbSyncWarning.Location = new System.Drawing.Point(3, 41);
-            lbSyncWarning.Name = "lbSyncWarning";
-            lbSyncWarning.Size = new System.Drawing.Size(347, 13);
-            lbSyncWarning.TabIndex = 1;
-            lbSyncWarning.Text = "Notice: Devices need to be connected via sync cabel before enabeling!\r\n";
+            this.label1.Location = new System.Drawing.Point(7, 41);
+            this.label1.MaximumSize = new System.Drawing.Size(0, 60);
+            this.label1.MinimumSize = new System.Drawing.Size(0, 30);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(0, 30);
+            this.label1.TabIndex = 1;
+            this.label1.Text = "Notice: All devices need to be connected  to the server and via sync cabel before" +
+    " enabeling! First Device in Server List will become the master";
             // 
             // chSync
             // 
@@ -174,7 +177,6 @@
             this.chSync.Text = "Enable Temporal Sync";
             this.chSync.UseVisualStyleBackColor = true;
             this.chSync.CheckedChanged += new System.EventHandler(this.chSync_CheckedChanged);
-
             // 
             // grBody
             // 
@@ -648,6 +650,16 @@
             this.lbOuterIters.TabIndex = 26;
             this.lbOuterIters.Text = "Num of refinement iters:";
             // 
+            // label3
+            // 
+            this.label3.Location = new System.Drawing.Point(7, 36);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(342, 44);
+            this.label3.TabIndex = 2;
+            this.label3.Text = "Before activating, make sure that all Kinects are connected to the server and pro" +
+    "perly connected via the sync cables. The first device in the server list will be" +
+    "come the master!";
+            // 
             // SettingsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -732,5 +744,7 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.GroupBox grSync;
         private System.Windows.Forms.CheckBox chSync;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label3;
     }
 }

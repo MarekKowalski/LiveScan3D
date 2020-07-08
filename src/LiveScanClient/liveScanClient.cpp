@@ -206,7 +206,8 @@ void LiveScanClient::UpdateFrame()
 
 		if (m_bCaptureFrame)
 		{
-			m_framesFileWriterReader.writeFrame(m_vLastFrameVertices, m_vLastFrameRGB);
+			uint64_t timeStamp = pCapture->GetTimeStamp();
+			m_framesFileWriterReader.writeFrame(m_vLastFrameVertices, m_vLastFrameRGB, timeStamp);
 			m_bConfirmCaptured = true;
 			m_bCaptureFrame = false;
 		}
@@ -275,8 +276,8 @@ LRESULT CALLBACK LiveScanClient::DlgProc(HWND hWnd, UINT message, WPARAM wParam,
             // Init Direct2D
             D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_pD2DFactory);
 
-            // Get and initialize the default Kinect sensor
-			bool res = pCapture->Initialize();
+            // Get and initialize the default Kinect sensor as standalone
+			bool res = pCapture->Initialize(false, false, 0);
 			if (res)
 			{
 				calibration.LoadCalibration(pCapture->serialNumber);
@@ -444,16 +445,62 @@ void LiveScanClient::HandleSocket()
 		//calibrate
 		else if (received[i] == MSG_CALIBRATE)
 			m_bCalibrate = true;
-		//Set this client as master
-		else if (received[i] == MSG_SET_MASTER) {
-			m_bIsMaster = true;
-			m_bIsSubOrdinate = false;
+		
+		//Enables Temporal sync on this client
+		else if (received[i] == MSG_SET_TEMPSYNC_ON) {
+
+			i++; //Get next byte (the sync Offset)
+			int syncOffset = received[i];
+
+			//Determine if this device is a subordinate, master, or standalone
+			int jackState = pCapture->GetSyncJackState();
+
+			switch (jackState)
+			{
+			case -1:
+				currentTempSyncState = SUBORDINATE;
+				//Restart this device as Subordinate, with a unique syncOffset (send by the server)
+				pCapture->Close();
+				pCapture->Initialize(false, true, syncOffset);
+				//Confirm to the server, that we set this device as subordinate
+				m_bConfirmTempSyncState = true;
+				break;
+
+			case 0: 
+				currentTempSyncState = MASTER;
+				//Only Close this device, as it needs to wait for all subordinates to start, before starting itself
+				pCapture->Close();
+				m_bConfirmTempSyncState = true;
+				break;
+
+			case 1://Device is Standalone
+				currentTempSyncState = STANDALONE;
+				//Restart this device as Standalone
+				pCapture->Close();
+				pCapture->Initialize(false, false, 0);
+				m_bConfirmTempSyncState = true;
+				break;
+			default:
+				break;
+			}			
 		}
-		//Set this client as subordinate
-		else if (received[i] == MSG_SET_SUBORDINATE) {
-			m_bIsMaster = false;
-			m_bIsSubOrdinate = true;
-		}			
+
+		//Sets this device as Standalone
+		else if (received[i] == MSG_SET_TEMPSYNC_OFF) {
+			currentTempSyncState = STANDALONE;
+			pCapture->Close();
+			pCapture->Initialize(false, false, 0);
+			m_bConfirmTempSyncState = true;
+		}
+
+		//Got confirmation from the server that all subs have started, and we can now start the master 
+		else if (received[i] == MSG_START_MASTER) {
+			if (currentTempSyncState == MASTER) 
+			{
+				pCapture->Initialize(true, false, 0);
+			}
+		}
+
 		//receive settings
 		//TODO: what if packet is split?
 		else if (received[i] == MSG_RECEIVE_SETTINGS)
@@ -577,23 +624,24 @@ void LiveScanClient::HandleSocket()
 		m_bConfirmCaptured = false;
 	}
 
-	if (m_bConfirmMaster) 
+	//Send validation to the server that this device has been set to a specific Sync State 
+	if (m_bConfirmTempSyncState)
 	{
-		int size = 2;
-		char *buffer = new char[size];
-		buffer[0] = MSG_CONFIRM_TEMP_SYNC_STATUS;
-		buffer[1] = 0;
-		m_pClientSocket->SendBytes(buffer, size);
-	}
-
-	if (m_bConfirmSubOrdinate) 
-	{
-		int size = 2;
+		int size = 3; //Somehow it doesn't work when sending only two bytes?? (So we send an extra one)
 		char* buffer = new char[size];
 		buffer[0] = MSG_CONFIRM_TEMP_SYNC_STATUS;
-		buffer[1] = -1;
+
+		switch (currentTempSyncState)
+		{
+		case SUBORDINATE: buffer[1] = 0; break;
+		case MASTER: buffer[1] = 1; break;
+		case STANDALONE: buffer[1] = 2; break;
+		}
+
 		m_pClientSocket->SendBytes(buffer, size);
+		m_bConfirmTempSyncState = false;
 	}
+
 
 	if (m_bConfirmCalibrated)
 	{

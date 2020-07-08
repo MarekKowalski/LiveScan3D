@@ -17,7 +17,14 @@ AzureKinectCapture::~AzureKinectCapture()
 	k4a_device_close(kinectSensor);
 }
 
-bool AzureKinectCapture::Initialize()
+/// <summary>
+/// Initialize the device. If you want to initialize it as Standalone, set "asMaster" and "asSubordinate" to false
+/// </summary>
+/// <param name="asMaster">Initializes this device as master</param>
+/// <param name="asSubordinate">Initalizes this devices as subordinate</param>
+/// <param name="syncOffsetMultiplier">Should only be set when initializing as Subordinate. Each subordinate should have a unique, ascending value</param>
+/// <returns></returns>
+bool AzureKinectCapture::Initialize(bool asMaster, bool asSubordinate, int syncOffsetMultiplier)
 {
 	uint32_t count = k4a_device_get_installed_count();
 	int deviceIdx = 0;
@@ -40,6 +47,27 @@ bool AzureKinectCapture::Initialize()
 	config.depth_mode = K4A_DEPTH_MODE_NFOV_UNBINNED;
 	config.synchronized_images_only = true;
 
+	if (asMaster) 
+	{
+		config.wired_sync_mode = K4A_WIRED_SYNC_MODE_MASTER;
+	}
+
+	else if (asSubordinate) 
+	{
+		config.wired_sync_mode = K4A_WIRED_SYNC_MODE_SUBORDINATE;
+		//Sets the offset on subordinate devices. Should be a multiple of 160, each subordinate having a different multiplier in ascending order.
+		//This is very important, as it avoids firing the Kinects Lasers at the same time.
+		
+		config.subordinate_delay_off_master_usec = 0;
+		
+		config.subordinate_delay_off_master_usec = 160 * syncOffsetMultiplier;
+	}
+
+	else
+	{
+		config.wired_sync_mode = K4A_WIRED_SYNC_MODE_STANDALONE;
+	}
+
 	// Start the camera with the given configuration
 	bInitialized = K4A_SUCCEEDED(k4a_device_start_cameras(kinectSensor, &config));
 
@@ -49,29 +77,49 @@ bool AzureKinectCapture::Initialize()
 		bInitialized = false;
 		return bInitialized;
 	}
+
 	transformation = k4a_transformation_create(&calibration);
 
-	std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
-	bool bTemp;
-	do
+	//If this device is a subordinate, it is expected to start capturing at a later time (When the master has started), so we skip this check 
+	if (!asSubordinate) 
 	{
-		bTemp = AcquireFrame();
-
-		std::chrono::duration<double> elapsedSeconds = std::chrono::system_clock::now() - start;
-		if (elapsedSeconds.count() > 5.0)
+		std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
+		bool bTemp;
+		do
 		{
-			bInitialized = false;
-			break;
-		}
-	} while (!bTemp);
+			bTemp = AcquireFrame();
+
+			std::chrono::duration<double> elapsedSeconds = std::chrono::system_clock::now() - start;
+			if (elapsedSeconds.count() > 5.0)
+			{
+				bInitialized = false;
+				break;
+			}
+		} while (!bTemp);
+	}	
 
 	size_t serialNoSize;
 	k4a_device_get_serialnum(kinectSensor, NULL, &serialNoSize);
 	serialNumber = std::string(serialNoSize, '\0');
 	k4a_device_get_serialnum(kinectSensor, (char*)serialNumber.c_str(), &serialNoSize);
 
-
 	return bInitialized;
+}
+
+bool AzureKinectCapture::Close() 
+{
+	if (!bInitialized) 
+	{
+		return false;
+	}
+
+	k4a_device_stop_cameras(kinectSensor);
+	k4a_device_close(kinectSensor);
+
+	bInitialized = false;
+
+
+	return true;
 }
 
 bool AzureKinectCapture::AcquireFrame()
@@ -96,6 +144,9 @@ bool AzureKinectCapture::AcquireFrame()
 
 	colorImage = k4a_capture_get_color_image(capture);
 	depthImage = k4a_capture_get_depth_image(capture);
+
+	currentTimeStamp = k4a_image_get_device_timestamp_usec(colorImage);
+
 	if (colorImage == NULL || depthImage == NULL)
 	{
 		k4a_capture_release(capture);
@@ -118,6 +169,7 @@ bool AzureKinectCapture::AcquireFrame()
 
 	memcpy(pColorRGBX, k4a_image_get_buffer(colorImage), nColorFrameWidth * nColorFrameHeight * sizeof(RGB));
 	memcpy(pDepth, k4a_image_get_buffer(depthImage), nDepthFrameHeight * nDepthFrameWidth * sizeof(UINT16));
+
 
 	k4a_capture_release(capture);
 
@@ -261,3 +313,41 @@ void AzureKinectCapture::MapColorFrameToDepthSpace(RGB *pColorInDepthSpace)
 
 	memcpy(pColorInDepthSpace, k4a_image_get_buffer(colorImageInDepth), nDepthFrameHeight * nDepthFrameWidth * 4 * (int)sizeof(uint8_t));
 }
+
+
+/// <summary>
+/// Determines if this camera is configured as a Master, Subordinate or Standalone. 
+/// This is achieved by looking at how the sync out and sync in ports of the device are connected
+/// </summary>
+/// <returns>Returns int -1 for Subordinate, int 0 for Master and int 1 for Standalone</returns>
+int AzureKinectCapture::GetSyncJackState() 
+{
+	if (K4A_RESULT_SUCCEEDED == k4a_device_get_sync_jack(kinectSensor, &syncInConnected, &syncOutConnected))
+	{
+		if (syncInConnected) 
+		{
+			return -1; //Device is Subordinate, as it recieves a signal via its "Sync In" Port
+		}
+
+		else if (!syncInConnected && syncOutConnected)
+		{
+			return 0; //Device is Master, as it doens't recieve a signal from its "Sync In" Port, but sends one through its "Sync Out" Port
+		}
+
+		else
+		{
+			return 1; //Device is Standalone, as it doesn't have a valid cabel configuration on its Sync Ports
+		}
+	}
+
+	else 
+	{
+		return 1; //Probably failed because there are no cabels connected, this means the device should be set as standalone
+	}
+}
+
+uint64_t AzureKinectCapture::GetTimeStamp() 
+{
+	return currentTimeStamp;
+}
+
