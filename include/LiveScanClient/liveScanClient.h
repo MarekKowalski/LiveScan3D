@@ -73,7 +73,7 @@ private:
     DWORD m_nFramesSinceUpdate;
 
 	Point3f* m_pCameraSpaceCoordinates;
-	RGB* m_pColorInDepthSpace;
+	RGB* m_pColorInColorSpace;
 	UINT16* m_pDepthInColorSpace;
 
     // Direct2D

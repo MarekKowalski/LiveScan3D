@@ -47,7 +47,7 @@ LiveScanClient::LiveScanClient() :
     m_pDrawColor(NULL),
 	m_pDepthRGBX(NULL),
 	m_pCameraSpaceCoordinates(NULL),
-	m_pColorInDepthSpace(NULL),
+	m_pColorInColorSpace(NULL),
 	m_pDepthInColorSpace(NULL),
 	m_bCalibrate(false),
 	m_bFilter(false),
@@ -107,10 +107,10 @@ LiveScanClient::~LiveScanClient()
 		m_pCameraSpaceCoordinates = NULL;
 	}
 
-	if (m_pColorInDepthSpace)
+	if (m_pColorInColorSpace)
 	{
-		delete[] m_pColorInDepthSpace;
-		m_pColorInDepthSpace = NULL;
+		delete[] m_pColorInColorSpace;
+		m_pColorInColorSpace = NULL;
 	}
 
 	if (m_pDepthInColorSpace)
@@ -198,11 +198,11 @@ void LiveScanClient::UpdateFrame()
 	if (!bNewFrameAcquired)
 		return;
 
-	pCapture->MapDepthFrameToCameraSpace(m_pCameraSpaceCoordinates);
-	pCapture->MapColorFrameToDepthSpace(m_pColorInDepthSpace);
+	pCapture->MapColorFrameToCameraSpace(m_pCameraSpaceCoordinates);
+
 	{
 		std::lock_guard<std::mutex> lock(m_mSocketThreadMutex);
-		StoreFrame(m_pCameraSpaceCoordinates, m_pColorInDepthSpace, pCapture->vBodies, pCapture->pBodyIndex);
+		StoreFrame(m_pCameraSpaceCoordinates, pCapture->pColorRGBX, pCapture->vBodies, pCapture->pBodyIndex);
 
 		if (m_bCaptureFrame)
 		{
@@ -283,8 +283,8 @@ LRESULT CALLBACK LiveScanClient::DlgProc(HWND hWnd, UINT message, WPARAM wParam,
 				m_pDepthRGBX = new RGB[pCapture->nColorFrameWidth * pCapture->nColorFrameHeight];
 				m_pDepthInColorSpace = new UINT16[pCapture->nColorFrameWidth * pCapture->nColorFrameHeight];
 
-				m_pCameraSpaceCoordinates = new Point3f[pCapture->nDepthFrameWidth * pCapture->nDepthFrameHeight];
-				m_pColorInDepthSpace = new RGB[pCapture->nDepthFrameWidth * pCapture->nDepthFrameHeight];
+				m_pCameraSpaceCoordinates = new Point3f[pCapture->nColorFrameWidth * pCapture->nColorFrameHeight];
+				m_pColorInColorSpace = new RGB[pCapture->nColorFrameWidth * pCapture->nColorFrameHeight];
 			}
 			else
 			{
@@ -682,17 +682,23 @@ void LiveScanClient::SendFrame(vector<Point3s> vertices, vector<RGB> RGB, vector
 
 void LiveScanClient::StoreFrame(Point3f *vertices, RGB *colorInDepth, vector<Body> &bodies, BYTE* bodyIndex)
 {
-	std::vector<Point3f> goodVertices;
-	std::vector<RGB> goodColorPoints;
+	unsigned int nVertices = pCapture->nColorFrameHeight * pCapture->nColorFrameWidth;
 
-	unsigned int nVertices = pCapture->nDepthFrameWidth * pCapture->nDepthFrameHeight;
+	//To save some processing cost, we allocate a full frame size (nVertices) of a Point3f Vector beforehand
+	//instead of using push_back for each vertice. Even though we have to copy the vertices into a clean array
+	//later and it uses a little bit more RAM, this gives us a nice speed increase for this function, around 25-50%
+	Point3f invalidPoint = Point3f(0, 0, 0, true);
+	vector<Point3f> AllVertices(nVertices);
+	int goodVerticesCount = 0;
 
 	for (unsigned int vertexIndex = 0; vertexIndex < nVertices; vertexIndex++)
 	{
 		if (m_bStreamOnlyBodies && bodyIndex[vertexIndex] >= bodies.size())
 			continue;
 
-		if (vertices[vertexIndex].Z >= 0 && colorInDepth[vertexIndex].rgbReserved == 255)
+		//As the resizing function doesn't return a valid RGB-Reserved value which indicates that this pixel is invalid,
+		//we cut all vertices under a distance of 0.0001mm, as the invalid vertices always have a Z-Value of 0
+		if (vertices[vertexIndex].Z >= 0.0001 && colorInDepth[vertexIndex].rgbReserved == 255)
 		{
 			Point3f temp = vertices[vertexIndex];
 			RGB tempColor = colorInDepth[vertexIndex];
@@ -705,12 +711,21 @@ void LiveScanClient::StoreFrame(Point3f *vertices, RGB *colorInDepth, vector<Bod
 
 				if (temp.X < m_vBounds[0] || temp.X > m_vBounds[3]
 					|| temp.Y < m_vBounds[1] || temp.Y > m_vBounds[4]
-					|| temp.Z < m_vBounds[2] || temp.Z > m_vBounds[5])
+					|| temp.Z < m_vBounds[2] || temp.Z > m_vBounds[5]) 
+				{
+					AllVertices[vertexIndex] = invalidPoint;
 					continue;
+				}
+					
 			}
 
-			goodVertices.push_back(temp);
-			goodColorPoints.push_back(tempColor);
+			AllVertices[vertexIndex] = temp;
+			goodVerticesCount++;
+		}
+
+		else 
+		{
+			AllVertices[vertexIndex] = invalidPoint;
 		}
 	}
 
@@ -737,12 +752,28 @@ void LiveScanClient::StoreFrame(Point3f *vertices, RGB *colorInDepth, vector<Bod
 	//	}
 	//}
 
+	vector<Point3f> goodVertices(goodVerticesCount);
+	vector<RGB> goodColorPoints(goodVerticesCount);
+	int goodVerticesShortCounter = 0;
+
+	//Copy all valid vertices into a clean vector 
+	for (unsigned int i = 0; i < AllVertices.size(); i++)
+	{
+		if (!AllVertices[i].Invalid) 
+		{
+			goodVertices[goodVerticesShortCounter] = AllVertices[i];
+			goodColorPoints[goodVerticesShortCounter] = colorInDepth[i];
+			goodVerticesShortCounter++;
+		}
+	}
+
 	if (m_bFilter)
 		filter(goodVertices, goodColorPoints, m_nFilterNeighbors, m_fFilterThreshold);
 
-	vector<Point3s> goodVerticesShort(goodVertices.size());
 
-	for (unsigned int i = 0; i < goodVertices.size(); i++)
+	vector<Point3s> goodVerticesShort(goodVertices.size());
+	
+	for (size_t i = 0; i < goodVertices.size(); i++)
 	{
 		goodVerticesShort[i] = goodVertices[i];
 	}
