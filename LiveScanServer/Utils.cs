@@ -193,8 +193,6 @@ namespace KinectServer
             streamWriter.WriteLine("property uchar green");
             streamWriter.WriteLine("property uchar blue");
 
-            //streamWriter.WriteLine("element face " + faces.ToString(CultureInfo.InvariantCulture));
-            //streamWriter.WriteLine("property list uchar int vertex_index");
             streamWriter.WriteLine("end_header");
             streamWriter.Flush();
 
@@ -225,16 +223,6 @@ namespace KinectServer
                 }
             }
 
-            // Sequentially write the 3 vertex indices of the triangle face, for each triangle, 0-referenced in PLY files
-            /*for (int i = 0; i < faces; i++)
-            {
-                string baseIndex0 = (i * 3).ToString(CultureInfo.InvariantCulture);
-                string baseIndex1 = ((i * 3) + 1).ToString(CultureInfo.InvariantCulture);
-                string baseIndex2 = ((i * 3) + 2).ToString(CultureInfo.InvariantCulture);
-
-                string faceString = "3 " + baseIndex0 + " " + baseIndex1 + " " + baseIndex2;
-                streamWriter.WriteLine(faceString);
-            }*/
             streamWriter.Flush();
             binaryWriter.Flush();
             fileStream.Close();
