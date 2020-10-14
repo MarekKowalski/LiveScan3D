@@ -10,13 +10,13 @@ class FrameFileWriterReader
 {
 public:
     FrameFileWriterReader();
-	void openNewFileForWriting();
+	void openNewFileForWriting(int deviceID);
 	void openCurrentFileForReading();
 
 	// leave filename blank if you want the filename to be generated from the date
 	void setCurrentFilename(std::string filename = "");
 
-	void writeFrame(std::vector<Point3s> points, std::vector<RGB> colors, uint64_t timestamp);
+	void writeFrame(std::vector<Point3s> points, std::vector<RGB> colors, uint64_t timestamp, int deviceID);
 	bool readFrame(std::vector<Point3s> &outPoints, std::vector<RGB> &outColors);
 
 	bool openedForWriting() { return m_bFileOpenedForWriting; }

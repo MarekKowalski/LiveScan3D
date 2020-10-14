@@ -18,7 +18,7 @@
 #include "ImageRenderer.h"
 #include "SocketCS.h"
 #include "calibration.h"
-#include "utils.h"
+//#include "utils.h"
 #include "azureKinectCapture.h"
 #include "frameFileWriterReader.h"
 #include <thread>
@@ -45,6 +45,7 @@ private:
 
 	bool m_bIsMaster;
 	bool m_bIsSubOrdinate;
+	bool m_bRestartingCamera;
 
 	ICapture *pCapture;
 
@@ -56,10 +57,13 @@ private:
 	bool m_bConfirmCaptured;
 	bool m_bConfirmTempSyncState;
 	bool m_bConfirmSubOrdinateStarted;
+	bool m_bConfirmRestartAsMaster;
 	bool m_bConfirmCalibrated;
 	bool m_bShowDepth;
 	bool m_bFrameCompression;
 	int m_iCompressionLevel;
+	bool m_bAutoExposureEnabled;
+	int m_nExposureStep;
 
 	enum tempSyncConfig { MASTER, SUBORDINATE, STANDALONE };
 	tempSyncConfig currentTempSyncState;

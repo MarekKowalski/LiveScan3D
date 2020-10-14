@@ -3,7 +3,9 @@
 #include "stdafx.h"
 #include "ICapture.h"
 #include <k4a/k4a.h>
-#include "utils.h"
+#include <iostream>
+using namespace std;
+//#include "utils.h"
 
 class AzureKinectCapture : public ICapture
 {
@@ -11,15 +13,17 @@ public:
 	AzureKinectCapture();
 	~AzureKinectCapture();
 
-	bool Initialize(bool asMaster, bool asSubOrdinate, int syncOffset);
-	bool Close();
+	bool Initialize(SYNC_STATE state, int syncOffset);
 	bool AcquireFrame();
+	bool Close();
 	void MapDepthFrameToCameraSpace(Point3f *pCameraSpacePoints);
 	void MapColorFrameToCameraSpace(Point3f *pCameraSpacePoints);
 	void MapDepthFrameToColorSpace(UINT16 *pDepthInColorSpace);
 	void MapColorFrameToDepthSpace(RGB *pColorInDepthSpace);
 	int GetSyncJackState();
 	uint64_t GetTimeStamp();
+	int GetDeviceIndex();
+	void SetExposureState(bool enableAutoExposure, int exposureStep);
 
 
 private:
@@ -34,6 +38,12 @@ private:
 	k4a_transformation_t transformation = NULL;
 	bool syncInConnected = false;
 	bool syncOutConnected = false;
-	uint64_t currentTimeStamp;
+	uint64_t currentTimeStamp = 0;
+	SYNC_STATE syncState = Standalone;
+	int deviceIDForRestart = -1;
+	int restartAttempts = 0;
+	bool autoExposureEnabled = true;
+	int exposureTimeStep = 0;
 	void UpdateDepthPointCloud();
+
 };

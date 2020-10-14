@@ -33,9 +33,15 @@
             this.lbICPIters = new System.Windows.Forms.Label();
             this.txtICPIters = new System.Windows.Forms.TextBox();
             this.grClient = new System.Windows.Forms.GroupBox();
-            this.grSync = new System.Windows.Forms.GroupBox();
+            this.grExposure = new System.Windows.Forms.GroupBox();
+            this.lbManualExposure = new System.Windows.Forms.Label();
+            this.chAutoExposureEnabled = new System.Windows.Forms.CheckBox();
+            this.trManualExposure = new System.Windows.Forms.TrackBar();
+            this.grTempSync = new System.Windows.Forms.GroupBox();
+            this.btSyncDisable = new System.Windows.Forms.Button();
+            this.btSyncEnable = new System.Windows.Forms.Button();
+            this.lbTempSync = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
-            this.chSync = new System.Windows.Forms.CheckBox();
             this.grBody = new System.Windows.Forms.GroupBox();
             this.chSkeletons = new System.Windows.Forms.CheckBox();
             this.chBodyData = new System.Windows.Forms.CheckBox();
@@ -82,9 +88,10 @@
             this.rAsciiPly = new System.Windows.Forms.RadioButton();
             this.txtRefinIters = new System.Windows.Forms.TextBox();
             this.lbOuterIters = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
             this.grClient.SuspendLayout();
-            this.grSync.SuspendLayout();
+            this.grExposure.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.trManualExposure)).BeginInit();
+            this.grTempSync.SuspendLayout();
             this.grBody.SuspendLayout();
             this.grMarkers.SuspendLayout();
             this.grBounding.SuspendLayout();
@@ -131,30 +138,108 @@
             // 
             // grClient
             // 
-            this.grClient.Controls.Add(this.grSync);
+            this.grClient.Controls.Add(this.grExposure);
+            this.grClient.Controls.Add(this.grTempSync);
             this.grClient.Controls.Add(this.grBody);
             this.grClient.Controls.Add(this.grMarkers);
             this.grClient.Controls.Add(this.grBounding);
             this.grClient.Controls.Add(this.grFiltering);
             this.grClient.Location = new System.Drawing.Point(12, 12);
             this.grClient.Name = "grClient";
-            this.grClient.Size = new System.Drawing.Size(632, 291);
+            this.grClient.Size = new System.Drawing.Size(632, 408);
             this.grClient.TabIndex = 43;
             this.grClient.TabStop = false;
             this.grClient.Text = "KinectClient settings";
             // 
-            // grSync
+            // grExposure
             // 
-            this.grSync.Controls.Add(this.label3);
-            this.grSync.Controls.Add(this.label1);
-            this.grSync.Controls.Add(this.chSync);
-            this.grSync.Location = new System.Drawing.Point(271, 211);
-            this.grSync.Name = "grSync";
-            this.grSync.Size = new System.Drawing.Size(355, 80);
-            this.grSync.TabIndex = 48;
-            this.grSync.TabStop = false;
-            this.grSync.Text = "Temporal Sync";
-            this.grSync.Enter += new System.EventHandler(this.grSync_Enter);
+            this.grExposure.Controls.Add(this.lbManualExposure);
+            this.grExposure.Controls.Add(this.chAutoExposureEnabled);
+            this.grExposure.Controls.Add(this.trManualExposure);
+            this.grExposure.Location = new System.Drawing.Point(9, 283);
+            this.grExposure.Name = "grExposure";
+            this.grExposure.Size = new System.Drawing.Size(249, 115);
+            this.grExposure.TabIndex = 49;
+            this.grExposure.TabStop = false;
+            this.grExposure.Text = "Exposure Settings";
+            // 
+            // lbManualExposure
+            // 
+            this.lbManualExposure.AutoSize = true;
+            this.lbManualExposure.Location = new System.Drawing.Point(79, 52);
+            this.lbManualExposure.Name = "lbManualExposure";
+            this.lbManualExposure.Size = new System.Drawing.Size(91, 13);
+            this.lbManualExposure.TabIndex = 7;
+            this.lbManualExposure.Text = "Manual exposure:";
+            // 
+            // chAutoExposureEnabled
+            // 
+            this.chAutoExposureEnabled.AutoSize = true;
+            this.chAutoExposureEnabled.Checked = true;
+            this.chAutoExposureEnabled.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chAutoExposureEnabled.Location = new System.Drawing.Point(11, 20);
+            this.chAutoExposureEnabled.Name = "chAutoExposureEnabled";
+            this.chAutoExposureEnabled.Size = new System.Drawing.Size(135, 17);
+            this.chAutoExposureEnabled.TabIndex = 6;
+            this.chAutoExposureEnabled.Text = "Auto exposure enabled";
+            this.chAutoExposureEnabled.UseVisualStyleBackColor = true;
+            this.chAutoExposureEnabled.CheckedChanged += new System.EventHandler(this.chAutoExposureEnabled_CheckedChanged);
+            // 
+            // trManualExposure
+            // 
+            this.trManualExposure.Enabled = false;
+            this.trManualExposure.LargeChange = 1;
+            this.trManualExposure.Location = new System.Drawing.Point(6, 62);
+            this.trManualExposure.Maximum = -5;
+            this.trManualExposure.Minimum = -11;
+            this.trManualExposure.Name = "trManualExposure";
+            this.trManualExposure.Size = new System.Drawing.Size(237, 45);
+            this.trManualExposure.TabIndex = 5;
+            this.trManualExposure.Value = -8;
+            this.trManualExposure.Scroll += new System.EventHandler(this.trManualExposure_Scroll);
+            // 
+            // grTempSync
+            // 
+            this.grTempSync.Controls.Add(this.btSyncDisable);
+            this.grTempSync.Controls.Add(this.btSyncEnable);
+            this.grTempSync.Controls.Add(this.lbTempSync);
+            this.grTempSync.Controls.Add(this.label1);
+            this.grTempSync.Location = new System.Drawing.Point(271, 211);
+            this.grTempSync.Name = "grTempSync";
+            this.grTempSync.Size = new System.Drawing.Size(355, 97);
+            this.grTempSync.TabIndex = 48;
+            this.grTempSync.TabStop = false;
+            this.grTempSync.Text = "Temporal Sync";
+            // 
+            // btSyncDisable
+            // 
+            this.btSyncDisable.Location = new System.Drawing.Point(104, 19);
+            this.btSyncDisable.Name = "btSyncDisable";
+            this.btSyncDisable.Size = new System.Drawing.Size(92, 23);
+            this.btSyncDisable.TabIndex = 4;
+            this.btSyncDisable.Text = "Disable";
+            this.btSyncDisable.UseVisualStyleBackColor = true;
+            this.btSyncDisable.Click += new System.EventHandler(this.btSyncDisable_click);
+            // 
+            // btSyncEnable
+            // 
+            this.btSyncEnable.Location = new System.Drawing.Point(6, 19);
+            this.btSyncEnable.Name = "btSyncEnable";
+            this.btSyncEnable.Size = new System.Drawing.Size(92, 23);
+            this.btSyncEnable.TabIndex = 3;
+            this.btSyncEnable.Text = "Enable";
+            this.btSyncEnable.UseVisualStyleBackColor = true;
+            this.btSyncEnable.Click += new System.EventHandler(this.btSyncEnable_click);
+            // 
+            // lbTempSync
+            // 
+            this.lbTempSync.Location = new System.Drawing.Point(3, 45);
+            this.lbTempSync.Name = "lbTempSync";
+            this.lbTempSync.Size = new System.Drawing.Size(342, 47);
+            this.lbTempSync.TabIndex = 2;
+            this.lbTempSync.Text = "Before activating, make sure that all Kinects are connected to the server and pro" +
+    "perly connected via the sync cables. When Temporal Sync is activated, the exposu" +
+    "re needs to be set manually!";
             // 
             // label1
             // 
@@ -166,17 +251,6 @@
             this.label1.TabIndex = 1;
             this.label1.Text = "Notice: All devices need to be connected  to the server and via sync cabel before" +
     " enabeling! First Device in Server List will become the master";
-            // 
-            // chSync
-            // 
-            this.chSync.AutoSize = true;
-            this.chSync.Location = new System.Drawing.Point(6, 19);
-            this.chSync.Name = "chSync";
-            this.chSync.Size = new System.Drawing.Size(133, 17);
-            this.chSync.TabIndex = 0;
-            this.chSync.Text = "Enable Temporal Sync";
-            this.chSync.UseVisualStyleBackColor = true;
-            this.chSync.CheckedChanged += new System.EventHandler(this.chSync_CheckedChanged);
             // 
             // grBody
             // 
@@ -192,6 +266,7 @@
             // chSkeletons
             // 
             this.chSkeletons.AutoSize = true;
+            this.chSkeletons.Enabled = false;
             this.chSkeletons.Location = new System.Drawing.Point(11, 41);
             this.chSkeletons.Name = "chSkeletons";
             this.chSkeletons.Size = new System.Drawing.Size(154, 17);
@@ -203,6 +278,7 @@
             // chBodyData
             // 
             this.chBodyData.AutoSize = true;
+            this.chBodyData.Enabled = false;
             this.chBodyData.Location = new System.Drawing.Point(11, 19);
             this.chBodyData.Name = "chBodyData";
             this.chBodyData.Size = new System.Drawing.Size(113, 17);
@@ -560,7 +636,7 @@
             this.grServer.Controls.Add(this.txtICPIters);
             this.grServer.Controls.Add(this.chMerge);
             this.grServer.Controls.Add(this.lbICPIters);
-            this.grServer.Location = new System.Drawing.Point(12, 311);
+            this.grServer.Location = new System.Drawing.Point(12, 426);
             this.grServer.Name = "grServer";
             this.grServer.Size = new System.Drawing.Size(632, 114);
             this.grServer.TabIndex = 44;
@@ -650,31 +726,24 @@
             this.lbOuterIters.TabIndex = 26;
             this.lbOuterIters.Text = "Num of refinement iters:";
             // 
-            // label3
-            // 
-            this.label3.Location = new System.Drawing.Point(7, 36);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(342, 44);
-            this.label3.TabIndex = 2;
-            this.label3.Text = "Before activating, make sure that all Kinects are connected to the server and pro" +
-    "perly connected via the sync cables. The first device in the server list will be" +
-    "come the master!";
-            // 
             // SettingsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(656, 431);
+            this.ClientSize = new System.Drawing.Size(656, 554);
             this.Controls.Add(this.grServer);
             this.Controls.Add(this.grClient);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.Name = "SettingsForm";
             this.Text = "Settings";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.SettingsForm_FormClosed);
             this.Load += new System.EventHandler(this.SettingsForm_Load);
             this.grClient.ResumeLayout(false);
-            this.grSync.ResumeLayout(false);
-            this.grSync.PerformLayout();
+            this.grExposure.ResumeLayout(false);
+            this.grExposure.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.trManualExposure)).EndInit();
+            this.grTempSync.ResumeLayout(false);
             this.grBody.ResumeLayout(false);
             this.grBody.PerformLayout();
             this.grMarkers.ResumeLayout(false);
@@ -742,9 +811,14 @@
         private System.Windows.Forms.CheckBox chSkeletons;
         private System.Windows.Forms.ComboBox cbCompressionLevel;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.GroupBox grSync;
-        private System.Windows.Forms.CheckBox chSync;
+        private System.Windows.Forms.GroupBox grTempSync;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label lbTempSync;
+        private System.Windows.Forms.Button btSyncDisable;
+        private System.Windows.Forms.Button btSyncEnable;
+        private System.Windows.Forms.TrackBar trManualExposure;
+        private System.Windows.Forms.GroupBox grExposure;
+        private System.Windows.Forms.Label lbManualExposure;
+        private System.Windows.Forms.CheckBox chAutoExposureEnabled;
     }
 }

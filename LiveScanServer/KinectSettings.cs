@@ -42,7 +42,11 @@ namespace KinectServer
         public bool bMergeScansForSave = true;
         public bool bSaveAsBinaryPLY = true;
 
-        public bool bEnableSync = false;
+        public bool bSyncEnabled = false;
+
+        public bool bAutoExposureEnabled = true;
+
+        public int nExposureStep = -8;
 
         public KinectSettings()
         {
@@ -100,6 +104,14 @@ namespace KinectServer
                 lData.Add(0);
 
             bTemp = BitConverter.GetBytes(iCompressionLevel);
+            lData.AddRange(bTemp);
+
+            if (bAutoExposureEnabled)
+                lData.Add(1);
+            else
+                lData.Add(0);
+
+            bTemp = BitConverter.GetBytes(nExposureStep);
             lData.AddRange(bTemp);
 
             return lData;

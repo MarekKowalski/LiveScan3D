@@ -24,20 +24,51 @@ AzureKinectCapture::~AzureKinectCapture()
 /// <param name="asSubordinate">Initalizes this devices as subordinate</param>
 /// <param name="syncOffsetMultiplier">Should only be set when initializing as Subordinate. Each subordinate should have a unique, ascending value</param>
 /// <returns></returns>
-bool AzureKinectCapture::Initialize(bool asMaster, bool asSubordinate, int syncOffsetMultiplier)
+bool AzureKinectCapture::Initialize(SYNC_STATE state, int syncOffsetMultiplier)
 {
 	uint32_t count = k4a_device_get_installed_count();
 	int deviceIdx = 0;
 
+	//We save the deviceId of this Client.
+	//When the cameras are reinitialized during runtime, we can then gurantee
+	//that each LiveScan instance uses the same device as before (In case two or more Kinects are connected to the same PC)
+	//A device ID of -1 means that no Kinects has been successfully initalized yet (only happens when the Client starts)
+	if (deviceIDForRestart != -1) {
+		deviceIdx = deviceIDForRestart;
+	}
+
 	kinectSensor = NULL;
 	while (K4A_FAILED(k4a_device_open(deviceIdx, &kinectSensor)))
 	{
-		deviceIdx++;
-		if (deviceIdx >= count)
+		
+		if (deviceIDForRestart == -1) 
 		{
-			bInitialized = false;
-			return bInitialized;
+			deviceIdx++;
+			if (deviceIdx >= count)
+			{
+				bInitialized = false;
+				return bInitialized;
+			}
 		}
+
+		
+		else {
+
+			//Sometimes the cameras fail to reinitialize, so we try to initialize them three times with a slight delay before failing
+			if (restartAttempts > 2) 
+			{
+				bInitialized = false;
+				return bInitialized;
+			}
+
+			else {
+
+				restartAttempts++;
+				Sleep(200);
+			}
+			
+		}
+		
 	}
 
 	k4a_device_configuration_t config = K4A_DEVICE_CONFIG_INIT_DISABLE_ALL;
@@ -47,12 +78,12 @@ bool AzureKinectCapture::Initialize(bool asMaster, bool asSubordinate, int syncO
 	config.depth_mode = K4A_DEPTH_MODE_NFOV_UNBINNED;
 	config.synchronized_images_only = true;
 
-	if (asMaster) 
+	if (state == Master) 
 	{
 		config.wired_sync_mode = K4A_WIRED_SYNC_MODE_MASTER;
 	}
 
-	else if (asSubordinate) 
+	else if (state == Subordinate) 
 	{
 		config.wired_sync_mode = K4A_WIRED_SYNC_MODE_SUBORDINATE;
 		//Sets the offset on subordinate devices. Should be a multiple of 160, each subordinate having a different multiplier in ascending order.
@@ -75,10 +106,24 @@ bool AzureKinectCapture::Initialize(bool asMaster, bool asSubordinate, int syncO
 		return bInitialized;
 	}
 
+	//Workaround for a bug. When the camera starts in manual Exposure mode, the brightness of the RBG image
+	//is much lower than in auto exposure mode. To prevent this, we first set the camera to auto exposure mode and 
+	//then switch to manual mode again if it has been enabled before
+
+	if (autoExposureEnabled == false) {
+
+		k4a_device_set_color_control(kinectSensor, K4A_COLOR_CONTROL_EXPOSURE_TIME_ABSOLUTE, K4A_COLOR_CONTROL_MODE_AUTO, 0);
+
+		//Give it a second to adjust
+		Sleep(1000);
+
+		SetExposureState(false, exposureTimeStep);
+	}
+
 	transformation = k4a_transformation_create(&calibration);
 
 	//If this device is a subordinate, it is expected to start capturing at a later time (When the master has started), so we skip this check 
-	if (!asSubordinate) 
+	if (state != Subordinate) 
 	{
 		std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
 		bool bTemp;
@@ -99,6 +144,9 @@ bool AzureKinectCapture::Initialize(bool asMaster, bool asSubordinate, int syncO
 	k4a_device_get_serialnum(kinectSensor, NULL, &serialNoSize);
 	serialNumber = std::string(serialNoSize, '\0');
 	k4a_device_get_serialnum(kinectSensor, (char*)serialNumber.c_str(), &serialNoSize);
+
+	deviceIDForRestart = deviceIdx;
+	restartAttempts = 0;
 
 	return bInitialized;
 }
@@ -171,6 +219,41 @@ bool AzureKinectCapture::AcquireFrame()
 	k4a_capture_release(capture);
 
 	return true;
+}
+
+/// <summary>
+/// Enables/Disables Auto Exposure and/or sets the exposure to a step value between -11 and -5 
+/// The kinect supports exposure values up to 1, but these are only available in lower FPS modes (5 or 15 FPS)
+/// For further information on how this value translates to ms-Values, please take a look
+/// at this table: https://github.com/microsoft/Azure-Kinect-Sensor-SDK/blob/develop/src/color/color_priv.h
+/// </summary>
+/// <param name="exposureStep">The Exposure Step between -11 and 1</param>
+void AzureKinectCapture::SetExposureState(bool enableAutoExposure, int exposureStep)
+{
+	if (bInitialized) 
+	{
+		if (enableAutoExposure)
+		{
+			k4a_device_set_color_control(kinectSensor, K4A_COLOR_CONTROL_EXPOSURE_TIME_ABSOLUTE, K4A_COLOR_CONTROL_MODE_AUTO, 0);
+
+			autoExposureEnabled = true;
+		}
+
+		else
+		{
+			//Formula copied from here: https://github.com/microsoft/Azure-Kinect-Sensor-SDK/blob/7cd8683a1a71b8baebef4a3537e6edd8639d1e95/examples/k4arecorder/main.cpp#L333
+			float absExposure = (exp2f((float)exposureStep) * 1000000.0f);
+			//We add 0.5 because C++ always truncates when converting to an integer. 
+			//This ensures that values will always be rounded correctly
+			float absExposureRoundingMargin = absExposure + 0.5;
+			int32_t absoluteExposureInt = (int32_t)absExposureRoundingMargin;
+
+			k4a_device_set_color_control(kinectSensor, K4A_COLOR_CONTROL_EXPOSURE_TIME_ABSOLUTE, K4A_COLOR_CONTROL_MODE_MANUAL, absoluteExposureInt);
+
+			autoExposureEnabled = false;
+			exposureTimeStep = exposureStep;
+		}
+	}	
 }
 
 void AzureKinectCapture::UpdateDepthPointCloud()
@@ -346,5 +429,10 @@ int AzureKinectCapture::GetSyncJackState()
 uint64_t AzureKinectCapture::GetTimeStamp() 
 {
 	return currentTimeStamp;
+}
+
+int AzureKinectCapture::GetDeviceIndex() 
+{
+	return deviceIDForRestart;
 }
 
