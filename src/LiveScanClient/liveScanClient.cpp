@@ -38,13 +38,13 @@ int APIENTRY wWinMain(
 }
 
 LiveScanClient::LiveScanClient() :
-    m_hWnd(NULL),
-    m_nLastCounter(0),
-    m_nFramesSinceUpdate(0),
-    m_fFreq(0),
-    m_nNextStatusTime(0LL),
-    m_pD2DFactory(NULL),
-    m_pDrawColor(NULL),
+	m_hWnd(NULL),
+	m_nLastCounter(0),
+	m_nFramesSinceUpdate(0),
+	m_fFreq(0),
+	m_nNextStatusTime(0LL),
+	m_pD2DFactory(NULL),
+	m_pDrawColor(NULL),
 	m_pDepthRGBX(NULL),
 	m_pCameraSpaceCoordinates(NULL),
 	m_pColorInColorSpace(NULL),
@@ -56,13 +56,17 @@ LiveScanClient::LiveScanClient() :
 	m_bConnected(false),
 	m_bConfirmCaptured(false),
 	m_bConfirmCalibrated(false),
+	m_bConfirmRestartAsMaster(false),
 	m_bShowDepth(false),
 	m_bSocketThread(true),
 	m_bFrameCompression(true),
 	m_iCompressionLevel(2),
 	m_pClientSocket(NULL),
 	m_nFilterNeighbors(10),
-	m_fFilterThreshold(0.01f)
+	m_fFilterThreshold(0.01f),
+	m_bRestartingCamera(false),
+	m_bAutoExposureEnabled(true), // Which state the Auto Exposure should be set to
+	m_nExposureStep(-5)
 {
 	pCapture = new AzureKinectCapture();
 
@@ -206,7 +210,8 @@ void LiveScanClient::UpdateFrame()
 
 		if (m_bCaptureFrame)
 		{
-			m_framesFileWriterReader.writeFrame(m_vLastFrameVertices, m_vLastFrameRGB);
+			uint64_t timeStamp = pCapture->GetTimeStamp();
+			m_framesFileWriterReader.writeFrame(m_vLastFrameVertices, m_vLastFrameRGB, timeStamp, pCapture->GetDeviceIndex());
 			m_bConfirmCaptured = true;
 			m_bCaptureFrame = false;
 		}
@@ -275,16 +280,16 @@ LRESULT CALLBACK LiveScanClient::DlgProc(HWND hWnd, UINT message, WPARAM wParam,
             // Init Direct2D
             D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_pD2DFactory);
 
-            // Get and initialize the default Kinect sensor
-			bool res = pCapture->Initialize();
+            // Get and initialize the default Kinect sensor as standalone
+			bool res = pCapture->Initialize(Standalone, 0);
 			if (res)
 			{
 				calibration.LoadCalibration(pCapture->serialNumber);
 				m_pDepthRGBX = new RGB[pCapture->nColorFrameWidth * pCapture->nColorFrameHeight];
 				m_pDepthInColorSpace = new UINT16[pCapture->nColorFrameWidth * pCapture->nColorFrameHeight];
-
 				m_pCameraSpaceCoordinates = new Point3f[pCapture->nColorFrameWidth * pCapture->nColorFrameHeight];
 				m_pColorInColorSpace = new RGB[pCapture->nColorFrameWidth * pCapture->nColorFrameHeight];
+        pCapture->SetExposureState(true, 0);
 			}
 			else
 			{
@@ -444,6 +449,124 @@ void LiveScanClient::HandleSocket()
 		//calibrate
 		else if (received[i] == MSG_CALIBRATE)
 			m_bCalibrate = true;
+		
+		//Enables Temporal sync on this client
+		else if (received[i] == MSG_SET_TEMPSYNC_ON) {
+
+			i++; //Get next byte (the sync Offset)
+			int syncOffset = received[i];
+
+			//Determine if this device is a subordinate, master, or standalone
+			int jackState = pCapture->GetSyncJackState();
+
+			bool res = false;
+
+			switch (jackState)
+			{
+			case -1:
+				currentTempSyncState = SUBORDINATE;
+
+				//Restart this device as Subordinate, with a unique syncOffset (send by the server)
+				m_bRestartingCamera = true;
+
+
+				res = pCapture->Close();
+				if (!res) {
+					SetStatusMessage(L"Subordinate device failed to close! Restart Application!", 10000, true);
+					return;
+				}
+
+				res = pCapture->Initialize(Subordinate, syncOffset);
+				if (!res) {
+					SetStatusMessage(L"Subordinate device failed to reinitialize! Restart Application!", 10000, true);
+					return;
+				}
+				//Confirm to the server, that we set this device as subordinate
+				m_bConfirmTempSyncState = true;
+				m_bRestartingCamera = false;
+				break;
+
+			case 0: 
+				currentTempSyncState = MASTER;
+
+				//Only Close this device, as it needs to wait for all subordinates to start, before starting itself
+				m_bRestartingCamera = true;
+
+				res = pCapture->Close();
+				if (!res) {
+					SetStatusMessage(L"Master device failed to close! Restart Application!", 10000, true);
+					return;
+				}
+
+				m_bConfirmTempSyncState = true;
+				break;
+
+			case 1://Device is Standalone
+				currentTempSyncState = STANDALONE;
+
+				//Restart this device as Standalone
+				m_bRestartingCamera = true;
+
+				res = pCapture->Close();
+				if (!res) {
+					SetStatusMessage(L"Capture device failed to close! Restart Application!", 10000, true);
+					return;
+				}
+
+				res = pCapture->Initialize(Standalone, 0);
+
+				if (!res) {
+					SetStatusMessage(L"Capture device failed to reinitialize! Restart Application!", 10000, true);
+					return;
+				}
+
+				m_bConfirmTempSyncState = true;
+				m_bRestartingCamera = false;
+				break;
+			default:
+				break;
+			}			
+		}
+
+		//Sets this device as Standalone
+		else if (received[i] == MSG_SET_TEMPSYNC_OFF) {
+			currentTempSyncState = STANDALONE;
+			m_bRestartingCamera = true;
+
+			bool res;
+
+			res = pCapture->Close();
+			if (!res) {
+				SetStatusMessage(L"Capture device failed to close! Restart Application!", 10000, true);
+				return;
+			}
+
+			res = pCapture->Initialize(Standalone, 0);
+
+			if (!res) {
+				SetStatusMessage(L"Capture device failed to reinitialize! Restart Application!", 10000, true);
+				return;
+			}
+
+			m_bConfirmTempSyncState = true;
+			m_bRestartingCamera = false;
+		}
+
+		//Got confirmation from the server that all subs have started, and we can now start the master 
+		else if (received[i] == MSG_START_MASTER) {
+			if (currentTempSyncState == MASTER) 
+			{
+				bool res = pCapture->Initialize(Master, 0);
+				if (!res) {
+					SetStatusMessage(L"Master device failed to reinitialize! Restart Application!", 10000, true);
+					return;
+				}
+
+				m_bConfirmRestartAsMaster = true;
+				m_bRestartingCamera = false;
+			}
+		}
+
 		//receive settings
 		//TODO: what if packet is split?
 		else if (received[i] == MSG_RECEIVE_SETTINGS)
@@ -505,6 +628,14 @@ void LiveScanClient::HandleSocket()
 				m_bFrameCompression = true;
 			else
 				m_bFrameCompression = false;
+			
+			m_bAutoExposureEnabled = (received[i] != 0);
+			i++;
+
+			m_nExposureStep = *(int*)(received.c_str() + i);
+			i += sizeof(int);
+
+			pCapture->SetExposureState(m_bAutoExposureEnabled, m_nExposureStep);
 
 			//so that we do not lose the next character in the stream
 			i--;
@@ -558,6 +689,18 @@ void LiveScanClient::HandleSocket()
 		{
 			m_framesFileWriterReader.closeFileIfOpened();
 		}
+
+		else if (received[i] == MSG_REQUEST_SYNC_JACK_STATE) 
+		{
+			int size = 3;
+			char* buffer = new char[size];
+			buffer[0] = MSG_SYNC_JACK_STATE;
+
+			buffer[1] = pCapture->GetSyncJackState() + 1; //Gets the current Sync Jack State and adds + 1, as we can't send a negative value
+
+			m_pClientSocket->SendBytes(buffer, size);
+			m_bConfirmTempSyncState = false;
+		}
 	}
 
 	if (m_bConfirmCaptured)
@@ -566,6 +709,33 @@ void LiveScanClient::HandleSocket()
 		m_pClientSocket->SendBytes(&byteToSend, 1);
 		m_bConfirmCaptured = false;
 	}
+
+	//Send validation to the server that this device has been set to a specific Sync State 
+	if (m_bConfirmTempSyncState)
+	{
+		int size = 3; //Somehow it doesn't work when sending only two bytes?? (So we send an extra one)
+		char* buffer = new char[size];
+		buffer[0] = MSG_CONFIRM_TEMP_SYNC_STATUS;
+
+		switch (currentTempSyncState)
+		{
+		case SUBORDINATE: buffer[1] = 0; break;
+		case MASTER: buffer[1] = 1; break;
+		case STANDALONE: buffer[1] = 2; break;
+		}
+
+		m_pClientSocket->SendBytes(buffer, size);
+		m_bConfirmTempSyncState = false;
+	}
+
+	//Send validation to the server that the Master camera has started recording again
+	if (m_bConfirmRestartAsMaster) 
+	{
+		byteToSend = MSG_CONFIRM_MASTER_RESTART;
+		m_pClientSocket->SendBytes(&byteToSend, 1);
+		m_bConfirmRestartAsMaster = false;
+	}
+
 
 	if (m_bConfirmCalibrated)
 	{

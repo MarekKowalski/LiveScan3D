@@ -40,12 +40,18 @@ public:
 	ICapture();
 	~ICapture();
 
-	virtual bool Initialize() = 0;
+	virtual bool Initialize(SYNC_STATE state, int syncOffset) = 0;
 	virtual bool AcquireFrame() = 0;
+	virtual bool Close() = 0;
 	virtual void MapDepthFrameToCameraSpace(Point3f *pCameraSpacePoints) = 0;
 	virtual void MapColorFrameToCameraSpace(Point3f *pCameraSpacePoints) = 0;
 	virtual void MapDepthFrameToColorSpace(UINT16 *pColorSpacePoints) = 0;
 	virtual void MapColorFrameToDepthSpace(RGB *pDepthSpacePoints) = 0;
+	virtual int GetSyncJackState() = 0;
+	virtual uint64_t GetTimeStamp() = 0;
+	virtual int GetDeviceIndex() = 0;
+	virtual void SetExposureState(bool enableAutoExposure, int exposureStep) = 0;
+	
 
 	bool bInitialized;
 
@@ -56,6 +62,8 @@ public:
 	BYTE *pBodyIndex;
 	RGB *pColorRGBX;
 	std::vector<Body> vBodies;
+
+
 
 	std::string serialNumber;
 };

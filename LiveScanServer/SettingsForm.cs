@@ -30,6 +30,8 @@ namespace KinectServer
         public KinectSettings oSettings;
         public KinectServer oServer;
 
+        private Timer scrollTimer = null;
+
         bool bFormLoaded = false;
 
         public SettingsForm()
@@ -61,6 +63,14 @@ namespace KinectServer
             chMerge.Checked = oSettings.bMergeScansForSave;
             txtICPIters.Text = oSettings.nNumICPIterations.ToString();
             txtRefinIters.Text = oSettings.nNumRefineIters.ToString();
+
+            btSyncEnable.Enabled = true;
+            btSyncDisable.Enabled = false;
+
+            chAutoExposureEnabled.Checked = oSettings.bAutoExposureEnabled;
+
+            trManualExposure.Value = oSettings.nExposureStep;
+
             if (oSettings.bSaveAsBinaryPLY)
             {
                 rBinaryPly.Checked = true;
@@ -78,7 +88,10 @@ namespace KinectServer
         void UpdateClients()
         {
             if (bFormLoaded)
+            {
                 oServer.SendSettings();
+            }
+
         }
 
         void UpdateMarkerFields()
@@ -339,6 +352,107 @@ namespace KinectServer
                     oSettings.iCompressionLevel = 0;
             }
             UpdateClients();
+        }
+
+        private void btSyncEnable_click(object sender, EventArgs e)
+        {
+            if (oServer.GetAllDevicesInitialized() && oServer.nClientCount > 1)
+            {
+                oServer.RequestDeviceSyncState();
+                btSyncEnable.Enabled = false;
+                btSyncDisable.Enabled = true;
+
+                //Disable the Auto Exposure, as this could interfere with the temporal sync
+                chAutoExposureEnabled.Enabled = false;
+                trManualExposure.Enabled = true;
+                chAutoExposureEnabled.CheckState = CheckState.Unchecked;
+            }
+
+        }
+
+        private void btSyncDisable_click(object sender, EventArgs e)
+        {
+            if (oServer.GetAllDevicesInitialized())
+            {
+                oServer.DisableTemporalSync();
+                btSyncEnable.Enabled = true;
+                btSyncDisable.Enabled = false;
+                chAutoExposureEnabled.Enabled = true;
+            }
+        }
+
+        public void ActivateTempSyncEnableButton()
+        {
+            //As a Form code is run on a single UI thread, we need to communicate with that thread via Invoke
+            this.BeginInvoke(new MethodInvoker(delegate
+            {
+                btSyncEnable.Enabled = true;
+                btSyncDisable.Enabled = false;
+                chAutoExposureEnabled.Enabled = true;
+            }));
+        }
+
+        private void chAutoExposureEnabled_CheckedChanged(object sender, EventArgs e)
+        {
+            oSettings.bAutoExposureEnabled = chAutoExposureEnabled.Checked;
+            UpdateClients();
+
+            trManualExposure.Enabled = !oSettings.bAutoExposureEnabled;
+        }
+
+
+        /// <summary>
+        /// When the user scrolls on the trackbar, we wait a short amount of time to check if the user has scrolled again.
+        /// This prevents the Manual Exposure to be set too often, and only sets it when the user has stopped scrolling.
+        /// Code taken from: https://stackoverflow.com/a/15687418
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void trManualExposure_Scroll(object sender, EventArgs e)
+        {
+            if (scrollTimer == null)
+            {
+                // Will tick every 500ms
+                scrollTimer = new Timer()
+                {
+                    Enabled = false,
+                    Interval = 300,
+                    Tag = (sender as TrackBar).Value
+                };
+
+                scrollTimer.Tick += (s, ea) =>
+                {
+                    // check to see if the value has changed since we last ticked
+                    if (trManualExposure.Value == (int)scrollTimer.Tag)
+                    {
+                        // scrolling has stopped so we are good to go ahead and do stuff
+                        scrollTimer.Stop();
+
+                        // Send the changed exposure to the devices
+
+                        //Clamp Exposure Step between -11 and 1
+                        int exposureStep = trManualExposure.Value;
+                        int exposureStepClamped = exposureStep < -11 ? -11 : exposureStep > 1 ? 1 : exposureStep;
+                        oSettings.nExposureStep = exposureStepClamped;
+                        UpdateClients();
+
+
+                        scrollTimer.Dispose();
+                        scrollTimer = null;
+                    }
+                    else
+                    {
+                        // record the last value seen
+                        scrollTimer.Tag = trManualExposure.Value;
+                    }
+                };
+                scrollTimer.Start();
+            }
+        }
+
+        private void SettingsForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            oServer.SetSettingsForm(null);
         }
     }
 }
