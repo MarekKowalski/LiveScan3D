@@ -42,8 +42,8 @@ public:
 	~Calibration();
 
 	bool Calibrate(RGB *pBuffer, Point3f *pCameraCoordinates, int cColorWidth, int cColorHeight);
-	bool LoadCalibration();
-	void SaveCalibration();
+	bool LoadCalibration(const string &serialNumber);
+	void SaveCalibration(const string &serialNumber);
 private:
 	IMarker *pDetector;
 	int nSampleCounter;

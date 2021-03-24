@@ -18,8 +18,8 @@
 #include "ImageRenderer.h"
 #include "SocketCS.h"
 #include "calibration.h"
-#include "utils.h"
-#include "KinectCapture.h"
+//#include "utils.h"
+#include "azureKinectCapture.h"
 #include "frameFileWriterReader.h"
 #include <thread>
 #include <mutex>
@@ -43,6 +43,10 @@ private:
 	bool m_bFilter;
 	bool m_bStreamOnlyBodies;
 
+	bool m_bIsMaster;
+	bool m_bIsSubOrdinate;
+	bool m_bRestartingCamera;
+
 	ICapture *pCapture;
 
 	int m_nFilterNeighbors;
@@ -51,10 +55,18 @@ private:
 	bool m_bCaptureFrame;
 	bool m_bConnected;
 	bool m_bConfirmCaptured;
+	bool m_bConfirmTempSyncState;
+	bool m_bConfirmSubOrdinateStarted;
+	bool m_bConfirmRestartAsMaster;
 	bool m_bConfirmCalibrated;
 	bool m_bShowDepth;
 	bool m_bFrameCompression;
 	int m_iCompressionLevel;
+	bool m_bAutoExposureEnabled;
+	int m_nExposureStep;
+
+	enum tempSyncConfig { MASTER, SUBORDINATE, STANDALONE };
+	tempSyncConfig currentTempSyncState;
 
 	FrameFileWriterReader m_framesFileWriterReader;
 
@@ -70,11 +82,12 @@ private:
     INT64 m_nLastCounter;
     double m_fFreq;
     INT64 m_nNextStatusTime;
-    DWORD m_nFramesSinceUpdate;	
+    DWORD m_nFramesSinceUpdate;
+	int frameRecordCounter;
 
 	Point3f* m_pCameraSpaceCoordinates;
-	Point2f* m_pColorCoordinatesOfDepth;
-	Point2f* m_pDepthCoordinatesOfColor;
+	RGB* m_pColorInColorSpace;
+	UINT16* m_pDepthInColorSpace;
 
     // Direct2D
     ImageRenderer* m_pDrawColor;
@@ -82,8 +95,8 @@ private:
 	RGB* m_pDepthRGBX;
 
 	void UpdateFrame();
-    void ProcessColor(RGB* pBuffer, int nWidth, int nHeight);
-	void ProcessDepth(const UINT16* pBuffer, int nHeight, int nWidth);
+    void ShowColor();
+	void ShowDepth();
 
     bool SetStatusMessage(_In_z_ WCHAR* szMessage, DWORD nShowTimeMsec, bool bForce);
 
@@ -91,7 +104,7 @@ private:
 	void SendFrame(vector<Point3s> vertices, vector<RGB> RGB, vector<Body> body);
 
 	void SocketThreadFunction();
-	void StoreFrame(Point3f *vertices, Point2f *mapping, RGB *color, vector<Body> &bodies, BYTE* bodyIndex);
+	void StoreFrame(Point3f *vertices, RGB *colorInDepth, vector<Body> &bodies, BYTE* bodyIndex);
 	void ShowFPS();
 	void ReadIPFromFile();
 	void WriteIPToFile();

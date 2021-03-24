@@ -14,7 +14,6 @@
 //    }
 
 #include "calibration.h"
-#include "Kinect.h"
 #include "opencv\cv.h"
 
 #include <fstream>
@@ -92,7 +91,7 @@ bool Calibration::Calibrate(RGB *pBuffer, Point3f *pCameraCoordinates, int cColo
 			marker3D[i].Z += marker3DSamples[j][i].Z / (float)nRequiredSamples;
 		}
 	}
-	
+
 	Procrustes(marker, marker3D, worldT, worldR);
 
 	vector<vector<float>> Rcopy = worldR;
@@ -125,15 +124,13 @@ bool Calibration::Calibrate(RGB *pBuffer, Point3f *pCameraCoordinates, int cColo
 	marker3DSamples.clear();
 	nSampleCounter = 0;
 
-	SaveCalibration();
-
 	return true;
 }
 
-bool Calibration::LoadCalibration()
+bool Calibration::LoadCalibration(const string &serialNumber)
 {
 	ifstream file;
-	file.open("calibration.txt");
+	file.open("calibration_" + serialNumber + ".txt");
 	if (!file.is_open())
 		return false;
 
@@ -150,10 +147,10 @@ bool Calibration::LoadCalibration()
 	return true;
 }
 
-void Calibration::SaveCalibration()
+void Calibration::SaveCalibration(const string &serialNumber)
 {
 	ofstream file;
-	file.open("calibration.txt");
+	file.open("calibration_" + serialNumber + ".txt");
 	for (int i = 0; i < 3; i++)
 		file << worldT[i] << " ";
 	file << endl;
@@ -262,7 +259,7 @@ bool Calibration::GetMarkerCorners3D(vector<Point3f> &marker3D, MarkerInfo &mark
 		Point3f pointXMinYMax = pCameraCoordinates[minX + maxY * cColorWidth];
 		Point3f pointMax = pCameraCoordinates[maxX + maxY * cColorWidth];
 
-		if (pointMin.Z < 0 || pointXMaxYMin.Z < 0 || pointXMinYMax.Z < 0 || pointMax.Z < 0)
+		if (pointMin.Z <= 0 || pointXMaxYMin.Z <= 0 || pointXMinYMax.Z <= 0 || pointMax.Z <= 0)
 			return false;
 
 		marker3D[i].X = (1 - dx) * (1 - dy) * pointMin.X + dx * (1 - dy) * pointXMaxYMin.X + (1 - dx) * dy * pointXMinYMax.X + dx * dy * pointMax.X;

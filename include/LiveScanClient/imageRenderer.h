@@ -52,7 +52,7 @@ private:
     UINT                     m_sourceWidth;
     LONG                     m_sourceStride;
 
-     // Direct2D 
+     // Direct2D
     ID2D1Factory*            m_pD2DFactory;
     ID2D1HwndRenderTarget*   m_pRenderTarget;
     ID2D1Bitmap*             m_pBitmap;
@@ -64,12 +64,12 @@ private:
     HRESULT EnsureResources();
 
     /// <summary>
-    /// Dispose of Direct2d resources 
+    /// Dispose of Direct2d resources
     /// </summary>
     void DiscardResources();
 
-	void DrawBody(Body &body);
-	void DrawBone(Body &body, JointType joint0, JointType joint1);
+	//void DrawBody(Body &body);
+	//void DrawBone(Body &body, JointType joint0, JointType joint1);
 
 	ID2D1SolidColorBrush*   m_pBrushJointTracked;
 	ID2D1SolidColorBrush*   m_pBrushJointInferred;

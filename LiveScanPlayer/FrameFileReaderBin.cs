@@ -46,8 +46,6 @@ namespace LiveScanPlayer
             lineParts = ReadLine().Split(' ');
             int frameTimestamp = Int32.Parse(lineParts[1]);
 
-            Console.WriteLine((frameTimestamp / 1000).ToString());
-
             short[] tempVertices = new short[3 * nPoints];
             byte[] tempColors = new byte[4 * nPoints];
 

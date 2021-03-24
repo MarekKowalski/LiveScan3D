@@ -125,10 +125,16 @@ namespace KinectServer
         //Opens the settings form
         private void btSettings_Click(object sender, EventArgs e)
         {
-            SettingsForm form = new SettingsForm();
-            form.oSettings = oSettings;
-            form.oServer = oServer;
-            form.Show();            
+            if(oServer.GetSettingsForm() == null)
+            {
+                SettingsForm form = new SettingsForm();
+                form.oSettings = oSettings;
+                form.oServer = oServer;
+                form.Show();
+                oServer.SetSettingsForm(form);
+                oServer.SetMainWindowForm(this);
+            }
+            
         }
 
         //Performs recording which is synchronized frame capture.
@@ -263,6 +269,12 @@ namespace KinectServer
             while (!worker.CancellationPending)
             {
                 Thread.Sleep(1);
+
+                if (!oServer.GetAllDevicesInitialized())
+                {
+                    continue;
+                }
+
                 oServer.GetLatestFrame(lFramesRGB, lFramesVerts, lFramesBody);
 
                 //Update the vertex and color lists that are common between this class and the OpenGLWindow.
@@ -472,7 +484,7 @@ namespace KinectServer
                 OpenGLWorker.RunWorkerAsync();
         }
 
-        private void SetStatusBarOnTimer(string message, int milliseconds)
+        public void SetStatusBarOnTimer(string message, int milliseconds)
         {
             statusLabel.Text = message;
 
@@ -495,6 +507,7 @@ namespace KinectServer
 
             for (int i = 0; i < socketList.Count; i++)
                 listBoxItems.Add(socketList[i].sSocketState);
+
 
             lClientListBox.DataSource = listBoxItems;
         }

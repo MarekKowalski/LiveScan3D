@@ -18,6 +18,15 @@ In our system each sensor is governed by a separate instance of a client app, wh
 To start working with our software you will need a Windows machine with and at least a single Kinect device. You can either build LiveScan3D from source, for which you will need Visual Studio 2019, or you can download the binary release.
 Both the binary and source distributions contain a manual (in the docs directory) which contains the steps necessary to start working with our software (it won't take more than a couple of minutes to set up).
 
+#### Temporal Synchronziaton (Azure Kinect only) ####
+LiveScan3D supports the synchronization feature of the Azure Kinect, which will temporally sync multiple devices to allow for a cleaner capture.
+To enable it, connect all devices via cable in a Daisy-chain configuration [(more information here)](https://docs.microsoft.com/en-us/azure/kinect-dk/multi-camera-sync/). Open the settings in the LiveScan server and click the "Enable"-Button found under "Temporal Sync". The devices will now perform a restart and after a few seconds you should be able to see the role of the devices (Master, Subordinate, Slave) in the Client-List of the Server. A error message will appear if the devices are not connected properly, or experience other difficulties. 
+*Note: While the Sync feature is activated, the camera exposure has to be controlled manually.*
+
+#### Exposure Control (Azure Kinect only) ####
+Livescan supports exposure control for all clients. LiveScan uses auto exposure as a default setting. To enable or disable manual exposure, open the settings on the LiveScan server and tick the "Auto exposure enabled" box. If auto exposure is disabled, you can manually set the exposure with the slider provided below the box.
+
+
 ## Where to get help ##
 If you have any problems feel free to contact us: Marek Kowalski <m.kowalski@ire.pw.edu.pl>, Jacek Naruniec <j.naruniec@ire.pw.edu.pl>. We usually answer emails quickly (our timezone is CET).
 
