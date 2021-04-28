@@ -197,8 +197,9 @@ namespace KinectServer
             {
                 List<List<byte>> lFrameRGBAllDevices = new List<List<byte>>();
                 List<List<float>> lFrameVertsAllDevices = new List<List<float>>();
-
-                bool success = oServer.GetStoredFrame(lFrameRGBAllDevices, lFrameVertsAllDevices);
+                List<List<Body>> lFrameBodiesAllDevices = new List<List<Body>>();
+                bool success = oServer.GetStoredFrame(lFrameRGBAllDevices, lFrameVertsAllDevices, lFrameBodiesAllDevices);
+                //bool success = oServer.GetStoredFrame(lFrameRGBAllDevices, lFrameVertsAllDevices, lFrameBodiesAllDevices);
 
                 //This indicates that there are no more stored frames.
                 if (!success)
@@ -213,18 +214,20 @@ namespace KinectServer
 
                 List<byte> lFrameRGB = new List<byte>();
                 List<Single> lFrameVerts = new List<Single>();
-
+                List<Body> lFrameBodies = new List<Body>();
                 SetStatusBarOnTimer("Saving frame " + (nFrames).ToString() + ".", 5000);
                 for (int i = 0; i < lFrameRGBAllDevices.Count; i++)
                 {                                 
                     lFrameRGB.AddRange(lFrameRGBAllDevices[i]);
                     lFrameVerts.AddRange(lFrameVertsAllDevices[i]);
-
+                    lFrameBodies.AddRange(lFrameBodiesAllDevices[i]);
                     //This is ran if the frames from each client are to be placed in separate files.
                     if (!oSettings.bMergeScansForSave)
                     {
                         string outputFilename = outDir + "\\" + nFrames.ToString().PadLeft(5, '0') + i.ToString() + ".ply";
-                        Utils.saveToPly(outputFilename, lFrameVertsAllDevices[i], lFrameRGBAllDevices[i], oSettings.bSaveAsBinaryPLY);                        
+                        Utils.saveToPly(outputFilename, lFrameVertsAllDevices[i], lFrameRGBAllDevices[i], oSettings.bSaveAsBinaryPLY);
+                        string outputFilenameBodies = outDir + "\\" + nFrames.ToString().PadLeft(5, '0') + i.ToString() + ".json";
+                        Utils.saveJoints(outputFilenameBodies, lFrameBodiesAllDevices[i]);
                     }
                 }
 
@@ -233,6 +236,8 @@ namespace KinectServer
                 {
                     string outputFilename = outDir + "\\" + nFrames.ToString().PadLeft(5, '0') + ".ply";
                     Utils.saveToPly(outputFilename, lFrameVerts, lFrameRGB, oSettings.bSaveAsBinaryPLY);
+                    string outputFilenameBodies = outDir + "\\" + nFrames.ToString().PadLeft(5, '0') + ".json";
+                    Utils.saveJoints(outputFilenameBodies, lFrameBodies);
                 }
             }
         }

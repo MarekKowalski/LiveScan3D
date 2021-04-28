@@ -162,7 +162,47 @@ namespace KinectServer
 
     public class Utils
     {
-        public static void saveToPly(string filename, List<Single> vertices, List<byte> colors, bool binary)
+
+        public static void saveJoints(string filename, List<Body> bodies)
+        {
+            
+            FileStream fileStream = File.Open(filename, FileMode.Create);
+
+            System.IO.StreamWriter streamWriter = new System.IO.StreamWriter(fileStream);
+
+            //PLY file header is written here.
+            streamWriter.WriteLine("{[");
+            streamWriter.Flush();
+            
+            for (int bodyIdx = 0; bodyIdx < bodies.Count; bodyIdx++)
+            {
+                if (bodies[bodyIdx].bTracked == false)
+                    continue;
+                string body_s = "\"body_" + bodyIdx.ToString(CultureInfo.InvariantCulture) + "\":{";
+                streamWriter.WriteLine(body_s);
+                streamWriter.WriteLine("\"joints\": [");
+                for (int j = 0; j < bodies[bodyIdx].lJoints.Count; j++)
+                {
+                    streamWriter.WriteLine("\"" +
+                         bodies[bodyIdx].lJoints[j].jointType.ToString(CultureInfo.InvariantCulture) +
+                         "\":" +
+                         "[" + bodies[bodyIdx].lJoints[j].position.X.ToString(CultureInfo.InvariantCulture) + "," +
+                              bodies[bodyIdx].lJoints[j].position.Y.ToString(CultureInfo.InvariantCulture) + "," +
+                              bodies[bodyIdx].lJoints[j].position.Z.ToString(CultureInfo.InvariantCulture) +
+                         "]" + ","
+                         );
+                }
+                streamWriter.WriteLine("]");
+                streamWriter.WriteLine("},");
+                
+            }
+
+            streamWriter.WriteLine("]}");
+            streamWriter.Flush();
+            fileStream.Close();
+        }
+    
+    public static void saveToPly(string filename, List<Single> vertices, List<byte> colors, bool binary)
         {
             int nVertices = vertices.Count / 3;
             int faces = nVertices / 3;
